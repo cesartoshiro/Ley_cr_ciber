@@ -1,0 +1,1312 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>El Código de TICO</title>
+<meta name="author" content="César Jiménez Segura">
+<style>
+/* ============================================================
+   OPERACIÓN PURA VIDA · juego educativo de ciberseguridad
+   Autor: César Jiménez Segura · 2026
+   Layout: "TicOS" — HUD retro tropical. Barra fija · mapa de
+   misiones (acceso libre) · panel de misión con LECCIÓN primero
+   y luego los retos. Certificado solo al completar todo.
+   ============================================================ */
+:root{
+  --bg:#0c1622; --bg2:#0f1d2e; --panel:#13273c; --panel2:#17304a; --line:#24415f;
+  --fg:#e9f1f8; --muted:#9fb4c9; --faint:#6d87a1;
+  --accent:#8b7cff; --accent-d:#5f4fd6; --coral:#ff6a5a; --gold:#f4bd4f; --purple:#56b4e9; --sky:#56b4e9;
+  --good:#43c478; --warn:#f4a93a; --crit:#ff5d6c;
+  --shadow:0 18px 40px -22px rgba(0,0,0,.7); --r:14px; --r-s:9px; --maxw:1080px;
+  --f-display:"Chakra Petch","Segoe UI",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"Courier New",monospace;
+  --f-pixel:"Silkscreen","Chakra Petch",monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
+  --bg:#eef3f2; --bg2:#e6edeb; --panel:#fff; --panel2:#f4f8f7; --line:#d3ddda;
+  --fg:#15242f; --muted:#51697a; --faint:#8197a6;
+  --accent:#5a46e0; --accent-d:#4636bd; --coral:#e23d2c; --gold:#b9810c; --purple:#2b84c4; --sky:#2b84c4;
+  --good:#1f9d57; --warn:#c77e12; --crit:#d9394a; --shadow:0 18px 40px -26px rgba(20,50,60,.35); color-scheme:light;
+}}
+:root[data-theme="light"]{
+  --bg:#eef3f2; --bg2:#e6edeb; --panel:#fff; --panel2:#f4f8f7; --line:#d3ddda;
+  --fg:#15242f; --muted:#51697a; --faint:#8197a6;
+  --accent:#5a46e0; --accent-d:#4636bd; --coral:#e23d2c; --gold:#b9810c; --purple:#2b84c4; --sky:#2b84c4;
+  --good:#1f9d57; --warn:#c77e12; --crit:#d9394a; --shadow:0 18px 40px -26px rgba(20,50,60,.35); color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--f-body);background:var(--bg);color:var(--fg);line-height:1.55;-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(1200px 600px at 80% -10%,rgba(47,214,180,.1),transparent 60%),radial-gradient(900px 500px at -5% 10%,rgba(157,140,255,.08),transparent 55%);
+  background-attachment:fixed;}
+h1,h2,h3,h4{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:0}
+p{margin:0 0 .7em}
+a{color:var(--accent)}
+button{font-family:inherit}
+:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px;border-radius:6px}
+::selection{background:var(--accent);color:#04231c}
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding-inline:16px}
+.pixel{font-family:var(--f-pixel);letter-spacing:.5px;text-transform:uppercase}
+.mono{font-family:var(--f-mono)}
+.tabnum{font-variant-numeric:tabular-nums}
+.tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:.72rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:var(--panel2)}
+.tag.good{color:var(--good);border-color:color-mix(in srgb,var(--good) 45%,transparent)}
+.tag.gold{color:var(--gold);border-color:color-mix(in srgb,var(--gold) 45%,transparent)}
+
+.btn{cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--fg);font-weight:600;font-size:.92rem;padding:10px 16px;border-radius:var(--r-s);transition:transform .08s,background .15s,border-color .15s;display:inline-flex;gap:8px;align-items:center}
+.btn:hover{border-color:var(--accent);background:var(--panel)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:linear-gradient(180deg,var(--accent),var(--accent-d));color:#042a22;border-color:transparent;font-weight:700}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.ghost{background:transparent}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:6px 11px;font-size:.82rem}
+
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topin{max-width:var(--maxw);margin:0 auto;display:flex;align-items:center;gap:12px;padding:9px 16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto;min-width:0;background:none;border:none;cursor:pointer;padding:0;color:inherit}
+.logo{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex:none;background:linear-gradient(145deg,var(--accent),var(--purple));color:#04231c;font-family:var(--f-pixel);font-size:.9rem;box-shadow:var(--shadow)}
+.brand b{font-family:var(--f-display);font-size:1.02rem;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand small{display:block;color:var(--faint);font-size:.66rem;font-family:var(--f-mono);margin-top:-2px}
+.hud{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.hud .chip{display:inline-flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:.8rem;font-weight:600}
+.hud .chip .k{font-family:var(--f-pixel);font-size:.62rem;color:var(--faint)}
+.icbtn{width:36px;height:36px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer;display:grid;place-items:center;font-size:1.05rem}
+.icbtn:hover{border-color:var(--accent)}
+
+.screen{display:none;animation:fade .35s ease}
+.screen.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+main{padding-block:22px 60px}
+
+.hero{text-align:center;padding-block:26px 8px}
+.hero .kicker{font-family:var(--f-pixel);color:var(--accent);font-size:.72rem;letter-spacing:1px}
+.hero h1{font-size:clamp(2.1rem,7vw,3.9rem);margin:.25em 0 .1em;background:linear-gradient(100deg,var(--fg),var(--accent) 60%,var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .lede{color:var(--muted);max-width:60ch;margin:0 auto 1.3em;font-size:1.05rem}
+.flagstripe{height:7px;border-radius:3px;max-width:380px;margin:0 auto 26px;background:linear-gradient(90deg,#1560bd 0 20%,#fff 20% 35%,var(--coral) 35% 65%,#fff 65% 80%,#1560bd 80%)}
+.setupcard{max-width:520px;margin:0 auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow);text-align:left}
+.setupcard label{font-family:var(--f-pixel);font-size:.66rem;color:var(--faint);display:block;margin-bottom:7px}
+.input{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--fg);border-radius:var(--r-s);padding:12px 14px;font-size:1rem;font-family:var(--f-mono)}
+.input:focus{border-color:var(--accent);outline:none}
+.hint{color:var(--faint);font-size:.82rem;margin-top:8px}
+.feat{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:34px}
+.feat .f{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.feat .f .ic{font-size:1.5rem}
+.feat .f h4{font-size:.98rem;margin:8px 0 4px}
+.feat .f p{color:var(--muted);font-size:.85rem;margin:0}
+
+.maphead{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.maphead h2{font-size:1.5rem}
+.maphead p{color:var(--muted);margin:.2em 0 0;max-width:52ch;font-size:.92rem}
+.progwrap{min-width:220px;flex:1;max-width:360px}
+.progbar{height:11px;background:var(--bg2);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.progbar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));width:0;transition:width .5s ease}
+.progmeta{display:flex;justify-content:space-between;font-size:.74rem;color:var(--faint);margin-top:5px;font-family:var(--f-mono)}
+.certbtn{margin-top:10px;width:100%;justify-content:center}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.mcard{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:9px;cursor:pointer;overflow:hidden;transition:transform .1s,border-color .15s,box-shadow .2s;text-align:left;color:inherit;font:inherit}
+.mcard:hover{transform:translateY(-3px);border-color:var(--accent);box-shadow:var(--shadow)}
+.mcard::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--region,var(--accent))}
+.mcard .row{display:flex;align-items:center;gap:10px}
+.mcard .num{font-family:var(--f-pixel);font-size:.7rem;color:#04231c;background:var(--region,var(--accent));padding:4px 8px;border-radius:6px;flex:none}
+.mcard .ic{font-size:1.5rem;margin-left:auto}
+.mcard h3{font-size:1.06rem;line-height:1.2}
+.mcard .loc{font-family:var(--f-mono);font-size:.72rem;color:var(--faint)}
+.mcard p{color:var(--muted);font-size:.85rem;margin:0;flex:1}
+.mcard .foot{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-top:4px}
+.mcard.done{border-color:color-mix(in srgb,var(--good) 55%,var(--line))}
+.stamp{position:absolute;top:10px;right:12px;font-family:var(--f-pixel);font-size:.62rem;color:var(--good);border:1.5px solid var(--good);border-radius:6px;padding:2px 6px;transform:rotate(7deg)}
+
+.mission{max-width:860px;margin:0 auto}
+.mback{display:inline-flex;align-items:center;gap:7px;color:var(--muted);background:none;border:none;cursor:pointer;font-size:.9rem;padding:4px 0;margin-bottom:10px}
+.mback:hover{color:var(--accent)}
+.mtitle{display:flex;align-items:flex-start;gap:14px;margin-bottom:6px}
+.mtitle .badge-ic{width:52px;height:52px;border-radius:12px;display:grid;place-items:center;font-size:1.7rem;flex:none;background:var(--region,var(--panel2));border:1px solid var(--line)}
+.mtitle h2{font-size:1.5rem}
+.mtitle .loc{font-family:var(--f-mono);font-size:.76rem;color:var(--faint)}
+.objective{background:var(--panel2);border:1px dashed var(--line);border-radius:var(--r-s);padding:11px 14px;margin:14px 0;font-size:.9rem}
+.objective b{font-family:var(--f-pixel);font-size:.64rem;color:var(--accent);display:block;margin-bottom:3px}
+.steps-nav{display:flex;gap:5px;margin:14px 0 18px;flex-wrap:wrap}
+.sdot{height:6px;flex:1;min-width:14px;border-radius:999px;background:var(--line)}
+.sdot.done{background:var(--good)} .sdot.cur{background:var(--accent)}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:var(--shadow)}
+.panel h3{font-size:1.15rem;margin-bottom:.5em}
+.steplabel{font-family:var(--f-pixel);font-size:.62rem;color:var(--faint);letter-spacing:1px;margin-bottom:10px}
+
+/* ---- novela visual ---- */
+.vn{display:flex;flex-direction:column;gap:12px}
+.dlg{display:flex;gap:12px;align-items:flex-start;animation:fade .3s ease}
+.avatar{width:46px;height:46px;border-radius:12px;flex:none;display:grid;place-items:center;font-size:1.5rem;background:var(--panel2);border:1px solid var(--line)}
+.bubble{background:var(--panel2);border:1px solid var(--line);border-radius:12px;border-top-left-radius:3px;padding:10px 14px;flex:1;min-width:0}
+.bubble .who{font-family:var(--f-display);font-weight:700;font-size:.82rem;color:var(--accent);margin-bottom:2px}
+.bubble .who .role{color:var(--faint);font-weight:400;font-family:var(--f-mono);font-size:.7rem;margin-left:6px}
+.bubble p{margin:0}
+.dlg.me .bubble{border-top-left-radius:12px;border-top-right-radius:3px;background:color-mix(in srgb,var(--accent) 12%,var(--panel2))}
+.dlg.narr .bubble{background:transparent;border-style:dashed;font-style:italic;color:var(--muted)}
+.dlg.narr .avatar{background:transparent;border-style:dashed}
+
+/* ---- LECCIÓN ---- */
+.lead{font-size:1.02rem;color:var(--fg);margin-bottom:14px}
+.lead b{color:var(--accent)}
+.teachin{display:flex;gap:11px;align-items:flex-start;background:color-mix(in srgb,var(--sky) 10%,var(--panel2));border:1px solid color-mix(in srgb,var(--sky) 35%,transparent);border-radius:var(--r-s);padding:12px 14px;margin-bottom:16px}
+.teachin .av{width:40px;height:40px;border-radius:10px;flex:none;display:grid;place-items:center;font-size:1.35rem;background:var(--panel);border:1px solid var(--line)}
+.teachin .tx{font-size:.92rem}
+.teachin .tx b{font-family:var(--f-display);color:var(--sky)}
+.concepts{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-bottom:16px}
+.concept{background:var(--panel2);border:1px solid var(--line);border-radius:var(--r-s);padding:14px;border-top:3px solid var(--region,var(--accent))}
+.concept .ch{display:flex;align-items:center;gap:9px;margin-bottom:6px}
+.concept .ch .ci{font-size:1.4rem}
+.concept .ch h4{font-size:1rem}
+.concept .cd{font-size:.86rem;color:var(--muted);margin-bottom:8px}
+.concept .ex{font-size:.8rem;background:var(--bg2);border:1px solid var(--line);border-radius:7px;padding:7px 9px;color:var(--fg)}
+.concept .ex .xl{font-family:var(--f-pixel);font-size:.5rem;color:var(--faint);display:block;margin-bottom:2px}
+.concept .tico{font-size:.8rem;color:var(--accent);margin-top:7px;font-style:italic}
+.acrobox{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r-s);padding:13px 15px;margin-bottom:16px}
+.acrobox h4{font-size:.82rem;font-family:var(--f-pixel);color:var(--gold);letter-spacing:.5px;margin-bottom:9px}
+.acrolist{display:flex;flex-direction:column;gap:7px}
+.acro{font-size:.85rem}
+.acro b{font-family:var(--f-mono);color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);border-radius:5px;padding:1px 6px;margin-right:6px}
+.keypts{background:color-mix(in srgb,var(--good) 9%,var(--panel2));border:1px solid color-mix(in srgb,var(--good) 35%,transparent);border-radius:var(--r-s);padding:13px 15px 13px 15px;margin-bottom:8px}
+.keypts h4{font-size:.78rem;font-family:var(--f-pixel);color:var(--good);margin-bottom:8px}
+.keypts ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px}
+.keypts li{font-size:.9rem}
+
+/* ---- retos ---- */
+.prompt{font-size:1.02rem;margin-bottom:14px}
+.opts{display:flex;flex-direction:column;gap:9px}
+.opt{display:flex;gap:11px;align-items:flex-start;text-align:left;width:100%;cursor:pointer;background:var(--panel2);border:1px solid var(--line);border-radius:var(--r-s);padding:12px 14px;color:inherit;font:inherit;font-size:.93rem;transition:border-color .12s,background .12s}
+.opt:hover{border-color:var(--accent)}
+.opt .mk{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--line);flex:none;display:grid;place-items:center;font-size:.8rem;font-weight:700}
+.opt.sel{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--panel2))}
+.opt.sel .mk{background:var(--accent);color:#042a22;border-color:transparent}
+.opt.correct{border-color:var(--good);background:color-mix(in srgb,var(--good) 14%,var(--panel2))}
+.opt.correct .mk{background:var(--good);color:#042a1a;border-color:transparent}
+.opt.wrong{border-color:var(--crit);background:color-mix(in srgb,var(--crit) 12%,var(--panel2))}
+.opt.wrong .mk{background:var(--crit);color:#fff;border-color:transparent}
+.opt.disabled{cursor:default;pointer-events:none}
+.feedback{margin-top:14px;border-radius:var(--r-s);padding:12px 14px;font-size:.9rem;display:none;animation:fade .25s ease}
+.feedback.show{display:block}
+.feedback.ok{background:color-mix(in srgb,var(--good) 14%,var(--panel2));border:1px solid color-mix(in srgb,var(--good) 45%,transparent)}
+.feedback.no{background:color-mix(in srgb,var(--crit) 12%,var(--panel2));border:1px solid color-mix(in srgb,var(--crit) 45%,transparent)}
+.feedback b{display:block;margin-bottom:3px;font-family:var(--f-display)}
+.hintbar{display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap}
+.hintbox{margin-top:10px;background:var(--bg2);border:1px dashed var(--line);border-radius:var(--r-s);padding:10px 13px;font-size:.86rem;color:var(--muted)}
+.hintbox .pix{font-family:var(--f-pixel);font-size:.58rem;color:var(--gold);display:block;margin-bottom:3px}
+.actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+
+.pool{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.chipitem{cursor:pointer;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:8px 13px;font-size:.86rem;transition:all .12s}
+.chipitem:hover{border-color:var(--accent)}
+.chipitem.active{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--panel2))}
+.chipitem.placed{opacity:.35;pointer-events:none;text-decoration:line-through}
+.buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.bucket{background:var(--bg2);border:1.5px dashed var(--line);border-radius:var(--r-s);padding:12px;min-height:110px}
+.bucket h4{font-size:.92rem;margin-bottom:4px}
+.bucket .desc{font-size:.74rem;color:var(--faint);margin-bottom:9px}
+.bucket .drop{display:flex;flex-direction:column;gap:6px}
+.bucket.hot{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--bg2))}
+.dropped{background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:6px 9px;font-size:.82rem;display:flex;gap:6px;align-items:center}
+.dropped.ok{border-color:var(--good)} .dropped.bad{border-color:var(--crit)}
+
+.orderlist{display:flex;flex-direction:column;gap:8px}
+.oitem{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--line);border-radius:var(--r-s);padding:10px 12px;font-size:.9rem}
+.oitem .idx{font-family:var(--f-pixel);font-size:.66rem;color:var(--faint);width:20px;flex:none}
+.oitem .mvs{margin-left:auto;display:flex;gap:4px}
+.oitem.ok{border-color:var(--good)} .oitem.bad{border-color:var(--crit)}
+.mv{width:28px;height:28px;border-radius:6px;border:1px solid var(--line);background:var(--bg2);cursor:pointer;color:var(--fg)}
+.mv:hover{border-color:var(--accent)}
+
+/* ---- CTF ---- */
+.safebanner{display:flex;gap:10px;align-items:flex-start;background:color-mix(in srgb,var(--warn) 12%,var(--panel2));border:1px solid color-mix(in srgb,var(--warn) 45%,transparent);border-radius:var(--r-s);padding:11px 13px;font-size:.84rem;margin-bottom:14px}
+.safebanner .ic{font-size:1.1rem}
+.win{background:var(--bg2);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+.winbar{display:flex;align-items:center;gap:8px;background:var(--panel2);border-bottom:1px solid var(--line);padding:8px 11px;font-size:.8rem}
+.winbar .dots{display:flex;gap:5px}
+.winbar .dots i{width:11px;height:11px;border-radius:50%;background:var(--line)}
+.winbar .dots i:nth-child(1){background:#ff6058}.winbar .dots i:nth-child(2){background:#ffbd2e}.winbar .dots i:nth-child(3){background:#28c940}
+.winbar .ttl{font-family:var(--f-mono);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.winbody{padding:14px}
+.mailhead{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:.84rem;margin-bottom:10px}
+.mailhead .lbl{color:var(--faint);font-family:var(--f-mono);font-size:.76rem}
+.mailhead .val{font-family:var(--f-mono);word-break:break-all}
+.suspect{cursor:help;border-bottom:2px dotted var(--coral)}
+.mailbody{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;font-size:.9rem;margin-top:8px}
+.mailbody .fakebtn{display:inline-block;background:var(--coral);color:#fff;padding:9px 16px;border-radius:7px;font-weight:700;margin-top:8px;cursor:pointer;text-decoration:none}
+.urlpeek{font-family:var(--f-mono);font-size:.74rem;color:var(--coral);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:3px 7px;display:inline-block;margin-top:6px}
+.headers{font-family:var(--f-mono);font-size:.76rem;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px;margin-top:10px;white-space:pre-wrap;word-break:break-all;line-height:1.7;display:none}
+.headers.show{display:block}
+.headers .hl{background:color-mix(in srgb,var(--gold) 30%,transparent);border-radius:3px;padding:0 2px}
+.addrbar{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-family:var(--f-mono);font-size:.82rem;margin-bottom:12px}
+.addrbar .lock{color:var(--good)} .addrbar .u{word-break:break-all}
+.loginbox{max-width:320px;margin:6px auto;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;text-align:center}
+.loginbox .blogo{font-family:var(--f-display);font-weight:700;color:var(--accent);font-size:1.15rem;margin-bottom:4px}
+.loginbox .input{margin:7px 0;text-align:left}
+.pill{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-family:var(--f-mono);font-size:.74rem;margin:2px}
+.split{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:640px){.split{grid-template-columns:1fr 1fr}}
+.coyote{background:#120b16;border:1px solid #3a2347;border-radius:10px;overflow:hidden}
+.coyote .winbar{background:#1c1022;border-color:#3a2347}
+.coyote .winbar .ttl{color:#c9a7df}
+.coylog{font-family:var(--f-mono);font-size:.76rem;padding:12px;min-height:150px;color:#e6c8f5}
+.coylog .ln{margin-bottom:4px}
+.coylog .ln .t{color:#7a5a8f}
+.coylog .ln.cap{color:#ff9db0}
+.coylog .ln.ok{color:#8ef0b8}
+.callcard{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:12px}
+.callcard .ring{font-family:var(--f-pixel);font-size:.64rem;color:var(--coral)}
+.srcview{font-family:var(--f-mono);font-size:.76rem;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px;white-space:pre-wrap;word-break:break-all;max-height:260px;overflow:auto;line-height:1.6}
+.srcview .cmt{color:var(--faint)}
+.srcview .b64{color:var(--gold);cursor:pointer;text-decoration:underline}
+.decoder{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.decoder .input{flex:1;min-width:160px}
+.phishcard{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.phishcard .meta{font-family:var(--f-mono);font-size:.78rem;color:var(--muted);margin-bottom:8px;word-break:break-all}
+.flagwon{text-align:center;padding:18px;animation:fade .35s ease}
+.flagwon .big{font-family:var(--f-pixel);font-size:1.1rem;color:var(--gold);margin:8px 0}
+.flagcode{font-family:var(--f-mono);background:var(--bg);border:1px dashed var(--gold);border-radius:8px;padding:10px 14px;display:inline-block;color:var(--gold);font-size:.95rem;margin:6px 0}
+
+.complete{text-align:center;padding:10px}
+.complete .burst{font-size:3rem}
+.complete h3{font-size:1.5rem;margin:.3em 0}
+.rewards{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:16px 0}
+.reward{background:var(--panel2);border:1px solid var(--line);border-radius:var(--r-s);padding:12px 16px;min-width:100px}
+.reward .n{font-family:var(--f-display);font-size:1.5rem;font-weight:700;color:var(--gold)}
+.reward .l{font-family:var(--f-pixel);font-size:.54rem;color:var(--faint)}
+
+.overlay{position:fixed;inset:0;z-index:60;background:rgba(5,12,20,.72);backdrop-filter:blur(4px);display:none;align-items:flex-start;justify-content:center;padding:20px;overflow:auto}
+.overlay.open{display:flex}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);max-width:640px;width:100%;box-shadow:var(--shadow);margin:auto;animation:fade .25s ease}
+.modal .mhead{display:flex;align-items:center;gap:10px;padding:15px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel);border-radius:var(--r) var(--r) 0 0}
+.modal .mhead h3{font-size:1.1rem;margin-right:auto}
+.modal .mbody{padding:18px}
+.tabs{display:flex;gap:6px;margin-bottom:14px}
+.tabs button{flex:1;padding:8px;border:1px solid var(--line);background:var(--panel2);color:var(--muted);border-radius:var(--r-s);cursor:pointer;font-weight:600;font-size:.85rem}
+.tabs button.on{border-color:var(--accent);color:var(--fg);background:color-mix(in srgb,var(--accent) 10%,var(--panel2))}
+.glossary{display:flex;flex-direction:column;gap:9px}
+.gentry{background:var(--panel2);border:1px solid var(--line);border-radius:var(--r-s);padding:11px 13px}
+.gentry .term{font-family:var(--f-display);font-weight:700;color:var(--accent);display:flex;gap:8px;align-items:center}
+.gentry .term .lk{font-size:.7rem;color:var(--faint);margin-left:auto;font-family:var(--f-mono)}
+.gentry .def{font-size:.86rem;color:var(--muted);margin-top:2px}
+.gentry .def b{color:var(--fg)}
+.badgegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}
+.bchip{text-align:center;background:var(--panel2);border:1px solid var(--line);border-radius:var(--r-s);padding:12px 6px}
+.bchip .ic{font-size:1.8rem;filter:grayscale(1);opacity:.35}
+.bchip.have .ic{filter:none;opacity:1}
+.bchip .nm{font-family:var(--f-pixel);font-size:.52rem;color:var(--faint);margin-top:6px;line-height:1.3}
+.bchip.have .nm{color:var(--fg)}
+.charlist{display:flex;flex-direction:column;gap:10px}
+.charrow{display:flex;gap:12px;align-items:flex-start;background:var(--panel2);border:1px solid var(--line);border-radius:var(--r-s);padding:11px 13px}
+.charrow .av{width:44px;height:44px;border-radius:11px;flex:none;display:grid;place-items:center;font-size:1.5rem;background:var(--panel);border:1px solid var(--line)}
+.charrow .nm{font-family:var(--f-display);font-weight:700}
+.charrow .rl{font-size:.8rem;color:var(--muted)}
+.teacher .warn{background:color-mix(in srgb,var(--warn) 12%,var(--panel2));border:1px solid color-mix(in srgb,var(--warn) 40%,transparent);border-radius:var(--r-s);padding:11px 13px;font-size:.84rem;margin-bottom:14px}
+.ttable{width:100%;border-collapse:collapse;font-size:.82rem}
+.ttable th,.ttable td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);vertical-align:top}
+.ttable th{font-family:var(--f-pixel);font-size:.56rem;color:var(--faint)}
+.ttable .fl{font-family:var(--f-mono);color:var(--gold)}
+details.tsec{border:1px solid var(--line);border-radius:var(--r-s);margin-bottom:10px;overflow:hidden}
+details.tsec summary{cursor:pointer;padding:11px 13px;font-family:var(--f-display);font-weight:600;background:var(--panel2)}
+details.tsec .tin{padding:13px}
+
+.cert{background:linear-gradient(145deg,var(--panel2),var(--panel));border:2px solid var(--accent);border-radius:var(--r);padding:26px;text-align:center;position:relative;overflow:hidden}
+.cert::before,.cert::after{content:"";position:absolute;width:120px;height:120px;border:2px solid color-mix(in srgb,var(--accent) 40%,transparent);border-radius:50%}
+.cert::before{top:-50px;left:-50px}.cert::after{bottom:-50px;right:-50px}
+.cert .seal{font-size:2.4rem}
+.cert .ttl{font-family:var(--f-pixel);font-size:.72rem;color:var(--accent);letter-spacing:1px;margin:8px 0}
+.cert .nm{font-family:var(--f-display);font-size:1.8rem;font-weight:700;margin:6px 0;border-bottom:1px solid var(--line);display:inline-block;padding:0 20px 6px}
+.cert .dt{color:var(--muted);font-size:.84rem;margin-top:8px;font-family:var(--f-mono)}
+.cert .sig{margin-top:18px;font-size:.78rem;color:var(--faint)}
+.locknote{text-align:center;padding:30px 18px;color:var(--muted)}
+.locknote .big{font-size:2.6rem}
+
+.foot{border-top:1px solid var(--line);margin-top:40px;padding:20px 16px;text-align:center;color:var(--faint);font-size:.8rem}
+.foot b{color:var(--muted)}
+.foot .mono{font-size:.72rem}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--panel);border:1px solid var(--accent);border-radius:999px;padding:10px 18px;font-size:.86rem;font-weight:600;box-shadow:var(--shadow);z-index:80;opacity:0;pointer-events:none;transition:all .3s ease;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+@media(max-width:520px){.brand small{display:none}.hud .chip .k{display:none}.mtitle .badge-ic{width:44px;height:44px;font-size:1.4rem}}
+</style>
+
+<header class="top">
+  <div class="topin">
+    <button class="brand" id="homeBtn">
+      <span class="logo">ET</span>
+      <span style="text-align:left"><b>El Código de TICO</b><small>Ética y ciberseguridad · modo tico</small></span>
+    </button>
+    <div class="hud" id="hud" hidden>
+      <span class="chip" title="Colones de reputación"><span class="k">₡ REP</span><span class="v tabnum" id="hudPoints">0</span></span>
+      <span class="chip" title="Misiones completadas"><span class="k">MISIÓN</span><span class="v tabnum" id="hudProg">0/8</span></span>
+      <button class="icbtn" id="charBtn" title="Personajes">🎭</button>
+      <button class="icbtn" id="badgeBtn" title="Insignias">🎖️</button>
+      <button class="icbtn" id="glosBtn" title="Glosario y siglas">📖</button>
+      <button class="icbtn" id="teachBtn" title="Modo docente">🧑‍🏫</button>
+      <button class="icbtn" id="themeBtn" title="Tema">🌗</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="screen active" id="scr-start">
+    <div class="wrap">
+      <div class="hero">
+        <div class="kicker">◆ Instituto de Robótica y Ética de Tiquicia ◆</div>
+        <h1>El Código de TICO</h1>
+        <div class="flagstripe" aria-hidden="true"></div>
+        <p class="lede">Entrená a un robot y aprendé a decidir con brújula: ética y conflicto, autonomía y ética del robot, hackeo ético y los grandes marcos éticos. Primero te lo explican con calma, luego los personajes lo conversan en tico y después vos ponés a prueba la jupa. Diay, ¿listo?</p>
+      </div>
+      <div class="setupcard">
+        <label for="aliasIn">Tu alias de agente (sin datos reales)</label>
+        <input class="input" id="aliasIn" maxlength="22" placeholder="ej. ElPuraVida, MaeHacker, DoñaFirewall" autocomplete="off">
+        <p class="hint">Usá un apodo, no tu nombre real. Así cuidamos tus datos (Ley&nbsp;8968 de Protección de Datos). Tu avance se guarda solo en este dispositivo.</p>
+        <div class="actions" style="justify-content:flex-start;margin-top:16px">
+          <button class="btn primary" id="startBtn">Entrar al CRT ▸</button>
+        </div>
+      </div>
+      <div class="feat wrap" style="padding:0">
+        <div class="f"><div class="ic">📚</div><h4>Primero se explica</h4><p>Cada misión abre con una lección clara; de ahí salen las preguntas.</p></div>
+        <div class="f"><div class="ic">🤖</div><h4>Ética del robot</h4><p>Autonomía, leyes de Asimov, sesgo y quién responde por la máquina.</p></div>
+        <div class="f"><div class="ic">🎩</div><h4>Hackeo ético</h4><p>Sombreros, permiso, alcance y divulgación responsable, sin meterse en líos.</p></div>
+        <div class="f"><div class="ic">🧭</div><h4>Marcos éticos</h4><p>Utilitarismo, deontología, virtud y cuidado, en tico claro.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="scr-map">
+    <div class="wrap">
+      <div class="maphead">
+        <div><h2>Mapa de misiones</h2><p id="mapGreeting">Entrá a la que querás, en el orden que querás.</p></div>
+        <div class="progwrap">
+          <div class="progbar"><i id="mapProgFill"></i></div>
+          <div class="progmeta"><span id="mapProgTxt">0 de 8</span><span id="mapRep">₡0 rep</span></div>
+          <button class="btn primary certbtn" id="goCert" hidden>🎓 Ver mi certificado</button>
+        </div>
+      </div>
+      <div class="grid" id="missionGrid"></div>
+    </div>
+  </section>
+
+  <section class="screen" id="scr-mission"><div class="wrap"><div class="mission" id="missionView"></div></div></section>
+
+  <section class="screen" id="scr-cert">
+    <div class="wrap" style="max-width:680px">
+      <button class="mback" id="certBack">◂ Volver al mapa</button>
+      <div id="certHost"></div>
+    </div>
+  </section>
+
+  <div class="foot wrap">
+    <p><b>El Código de TICO</b> — juego educativo de ética y ciberseguridad.</p>
+    <p>Autor: <b>César Jiménez Segura</b> · 2026 · Hecho con sabor tico 🇨🇷</p>
+    <p class="mono">Los casos son simulados y con fines educativos. Entrar a sistemas reales sin autorización es delito en Costa Rica (Ley&nbsp;9048), aunque no se robe nada.</p>
+  </div>
+</main>
+
+<div class="overlay" id="ovGlos"><div class="modal"><div class="mhead"><span style="font-size:1.3rem">📖</span><h3>Glosario y siglas</h3><button class="icbtn" data-close>✕</button></div><div class="mbody"><div class="tabs"><button class="on" id="tabGlos">Glosario tico</button><button id="tabAcro">Siglas</button></div><input class="input" id="glosSearch" placeholder="Buscar…" style="margin-bottom:12px"><div class="glossary" id="glosList"></div></div></div></div>
+<div class="overlay" id="ovBadge"><div class="modal"><div class="mhead"><span style="font-size:1.3rem">🎖️</span><h3>Tus insignias</h3><button class="icbtn" data-close>✕</button></div><div class="mbody"><p class="hint" id="badgeCount"></p><div class="badgegrid" id="badgeGrid"></div></div></div></div>
+<div class="overlay" id="ovChar"><div class="modal"><div class="mhead"><span style="font-size:1.3rem">🎭</span><h3>Personajes</h3><button class="icbtn" data-close>✕</button></div><div class="mbody"><div class="charlist" id="charList"></div></div></div></div>
+<div class="overlay" id="ovTeach"><div class="modal"><div class="mhead"><span style="font-size:1.3rem">🧑‍🏫</span><h3>Modo docente</h3><button class="icbtn" data-close>✕</button></div><div class="mbody teacher" id="teachBody"></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* OPERACIÓN PURA VIDA — motor · Autor del proyecto: César Jiménez Segura (2026)
+   Todo corre en el navegador. El laboratorio es simulado: sin red, sin marcas
+   reales, nada sale de aquí. */
+const $=(s,r=document)=>r.querySelector(s);
+const el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+const esc=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const b64=s=>{try{return btoa(unescape(encodeURIComponent(s)));}catch(e){return "";}};
+const unb64=s=>{try{return decodeURIComponent(escape(atob(s.trim())));}catch(e){return null;}};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+function toast(m){const t=$('#toast');t.innerHTML=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2800);}
+
+const SAVE_KEY='tico_save_v1';
+const DEFAULT={alias:'',points:0,missions:{},badges:[],glossary:[],started:false,theme:null};
+let S=load();
+function load(){try{const r=localStorage.getItem(SAVE_KEY);if(r)return Object.assign({},DEFAULT,JSON.parse(r));}catch(e){}return JSON.parse(JSON.stringify(DEFAULT));}
+function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
+function resetAll(){S=JSON.parse(JSON.stringify(DEFAULT));save();}
+
+function applyTheme(){if(S.theme)document.documentElement.setAttribute('data-theme',S.theme);else document.documentElement.removeAttribute('data-theme');}
+$('#themeBtn').addEventListener('click',()=>{const cur=S.theme||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');S.theme=cur==='dark'?'light':'dark';applyTheme();save();});
+applyTheme();
+
+/* ===== SIGLAS (acrónimos) ===== */
+const ACR={
+ IA:'Inteligencia Artificial: programas que aprenden o deciden imitando tareas humanas.',
+ IRET:'Instituto de Robótica y Ética de Tiquicia (academia ficticia de este juego).',
+ HITL:'Human-in-the-loop — "humano en el circuito": una persona supervisa y aprueba lo que decide la máquina.',
+ "I+D":'Investigación y Desarrollo: donde se crea y prueba la tecnología nueva.',
+ VDP:'Vulnerability Disclosure Program — Programa de Divulgación de Vulnerabilidades: el canal oficial para reportar fallos sin meterse en líos.',
+ CTF:'Capture The Flag — "Captura la Bandera", reto para practicar seguridad.',
+ OIJ:'Organismo de Investigación Judicial (Costa Rica): ahí se denuncian los delitos.',
+ MICITT:'Ministerio de Ciencia, Innovación, Tecnología y Telecomunicaciones (Costa Rica).',
+ UNESCO:'Organización de la ONU para la educación, la ciencia y la cultura; publicó una Recomendación sobre la Ética de la IA (2021).',
+ OCDE:'Organización para la Cooperación y el Desarrollo Económicos; tiene Principios sobre IA.',
+ ONU:'Organización de las Naciones Unidas.',
+ IEEE:'Instituto de Ingeniería Eléctrica y Electrónica; propone estándares de diseño ético de sistemas autónomos.',
+ TEC:'Instituto Tecnológico de Costa Rica (de donde viene Mari, la protagonista).',
+ PRODHAB:'Agencia de Protección de Datos de los Habitantes (Costa Rica).'
+};
+
+/* ===== PERSONAJES ===== */
+const CHARS={
+ mari:{name:'Mari Fonseca',role:'ingeniera pasante (vos)',ic:'👩🏽‍🔧',bio:'Estudiante de robótica del TEC, de Cartago. Entrena a TICO y aprende que la técnica sin ética es peligrosa.'},
+ tico:{name:'TICO',role:'robot aprendiz',ic:'🤖',bio:'El robot que estás entrenando. Hace preguntas inocentes que destapan los dilemas más profundos.'},
+ montero:{name:'Profe Montero',role:'instructor de ética',ic:'👨🏽‍🏫',bio:'Filósofo del IRET. Da las lecciones y nunca deja una palabra rara sin explicar.'},
+ chila:{name:'Doña Chila',role:'mentora',ic:'👵🏽',bio:'Ingeniera jubilada, pura práctica y sentido común tico. Baja la teoría a la realidad.'},
+ beto:{name:'Beto',role:'compañero pasante',ic:'🧑🏽‍💻',bio:'Buen mae, pero siempre busca el atajo. Sus apuros sirven para ver el conflicto ético.'},
+ chip:{name:'Chip el colibrí',role:'asistente del IRET',ic:'🐦',bio:'Un dron-colibrí que te traduce las siglas y te tira pistas. ¡Rapidito como colibrí!'},
+ solano:{name:'Licda. Solano',role:'abogada de tecnología',ic:'⚖️',bio:'Explica dónde termina la ética y empieza la ley. Sabe de la 9048 y la 8968 al derecho y al revés.'},
+ zopilote:{name:'El Zopilote',role:'hacker tentador',ic:'🦅',bio:'Siempre ronda ofreciendo atajos "sin que nadie se dé cuenta". El villano que pone a prueba tu brújula.'},
+ narr:{name:'',role:'',ic:'🎙️'}
+};
+
+/* ===== REGIONES ===== */
+const REGION={intro:'#8b7cff',fund:'#2fd6b4',marcos:'#f4bd4f',robot:'#56b4e9',conflicto:'#ff6a5a',hackeo:'#2fd6b4',lab:'#9d8cff',boss:'#ff6a5a'};
+
+/* ===== GLOSARIO TICO ===== */
+const GLOSSARY=[
+ {t:'Pura vida',d:'La frase tica por excelencia: saludo, despedida, "todo bien" y actitud de vida.'},
+ {t:'Mae',d:'Amigo, compa. "¡Mae, qué chiva!".'},
+ {t:'Tuanis',d:'Muy bueno, buenísimo. "Esa decisión quedó tuanis".'},
+ {t:'Diay',d:'Muletilla multiusos: "pues", "y entonces".'},
+ {t:'Al chile',d:'En serio, de verdad.'},
+ {t:'Qué sala',d:'Qué mala suerte, qué situación fea.'},
+ {t:'Jupa',d:'Cabeza. "Usá la jupa antes de decidir".'},
+ {t:'Brete',d:'Trabajo. "La ética es un brete de todos los días".'},
+ {t:'Upe',d:'"¿Hay alguien?" — se grita al llegar a una casa.'},
+ {t:'Suave',d:'"Tranquilo", "espérate".'},
+ {t:'Chunche',d:'Cosa, aparato. "Ese chunche decide solo, ¡ojo!".'},
+ {t:'Ética',d:'La reflexión sobre qué está bien y qué está mal, y por qué. No es la ley, aunque se tocan.'},
+ {t:'Moral',d:'El conjunto de normas y valores que una persona o grupo vive en la práctica. La ética piensa sobre la moral.'},
+ {t:'Dilema',d:'Situación donde cualquier opción sacrifica algo valioso: no hay respuesta perfecta.'},
+ {t:'Consecuencialismo',d:'Teoría que juzga una acción por sus <b>resultados</b>. El utilitarismo busca el mayor bien para el mayor número.'},
+ {t:'Utilitarismo',d:'Forma de consecuencialismo (Bentham, Mill): la mejor acción es la que produce más bienestar para más gente.'},
+ {t:'Deontología',d:'Teoría que juzga por el <b>deber</b> y los principios, no por el resultado (Kant). Hay cosas que no se hacen aunque "convenga".'},
+ {t:'Imperativo categórico',d:'Regla de Kant: actuá solo de un modo que quisieras que fuera ley para todos, y tratá a las personas como fines, nunca solo como medios.'},
+ {t:'Ética de la virtud',d:'Teoría (Aristóteles) centrada en el <b>carácter</b>: ¿qué haría una persona buena y prudente?'},
+ {t:'Ética del cuidado',d:'Enfoque que pone en el centro las <b>relaciones</b> y la responsabilidad hacia los demás (Gilligan, Noddings).'},
+ {t:'Autonomía',d:'Capacidad de decidir por cuenta propia. En un robot, cuánto decide SIN que un humano apruebe.',},
+ {t:'Agencia moral',d:'Ser responsable de los propios actos. Un robot no es agente moral: la responsabilidad es de las personas.'},
+ {t:'Human-in-the-loop',d:'Que una persona supervise y apruebe las decisiones críticas de una máquina.'},
+ {t:'Sesgo algorítmico',d:'Cuando un sistema aprende de datos injustos y repite o amplifica la discriminación.'},
+ {t:'Caja negra',d:'Un sistema cuya decisión no se puede explicar fácilmente. Dificulta rendir cuentas.'},
+ {t:'Hackeo ético',d:'Buscar fallos de seguridad CON permiso, para repararlos. Lo contrario del ataque criminal.'},
+ {t:'Sombrero blanco',d:'Hacker ético: actúa con autorización y reporta los fallos.'},
+ {t:'Sombrero negro',d:'Atacante criminal: entra sin permiso para dañar o robar.'},
+ {t:'Sombrero gris',d:'Quien entra sin permiso pero "sin mala intención". Igual suele ser ilegal.'},
+ {t:'Pentesting',d:'Prueba de penetración: simular un ataque, con permiso y alcance definido, para hallar huecos.'},
+ {t:'Alcance (scope)',d:'El acuerdo de qué sistemas y hasta dónde se puede probar. Salirse de ahí ya es delito.'},
+ {t:'Divulgación responsable',d:'Avisar del fallo primero al dueño (por un canal oficial) y darle tiempo de arreglarlo antes de publicarlo.'},
+ {t:'Dilema del tranvía',d:'Experimento mental: ¿desviar un tranvía para salvar a cinco pero atropellar a uno? Sirve para ver cómo decidimos.'}
+];
+function unlockGlossary(t){if(!S.glossary.includes(t)){S.glossary.push(t);save();}}
+
+/* ===== INSIGNIAS ===== */
+const BADGES={
+ m0:{ic:'🤝',nm:'Juramento'},m1:{ic:'⚖️',nm:'Ética 101'},m2:{ic:'🧭',nm:'Brújula'},m3:{ic:'🤖',nm:'Robot con alma'},
+ m4:{ic:'🚃',nm:'El dilema'},m5:{ic:'🎩',nm:'Sombrero blanco'},m6:{ic:'🔬',nm:'Laboratorio'},m7:{ic:'🏆',nm:'Jefe Final'},
+ perfect:{ic:'💎',nm:'Sin pistas'},graduado:{ic:'🎓',nm:'Graduado'}
+};
+function grantBadge(id){if(id&&!S.badges.includes(id)){S.badges.push(id);save();toast('🎖️ Insignia: '+BADGES[id].nm);}}
+
+/* ===== MISIONES ===== */
+const MISSIONS=[];
+
+/* ---------- 0 · BIENVENIDA ---------- */
+MISSIONS.push({id:'m0',num:'00',title:'Bienvenida al IRET',loc:'Cartago · TEC',ic:'🤝',region:'intro',
+ objective:'Entender qué es la ética y por qué un robot y un hacker la necesitan.',
+ summary:'Tu primer día entrenando a TICO. Por qué la técnica sin ética es peligrosa.',
+ steps:[
+  {type:'scene',lines:[
+    {who:'narr',text:'Mañana fresca en Cartago, a la sombra del volcán Irazú. Entrás al <b>Instituto de Robótica y Ética de Tiquicia (IRET)</b>. Huele a café y a cables nuevos.'},
+    {who:'montero',text:'¡Pura vida, Mari! Soy el Profe Montero. Aquí no solo armamos robots: les enseñamos a decidir bien. Ese de la esquina es tu aprendiz.'},
+    {who:'tico',text:'Hola… Mari. Yo soy TICO. Pregunta: si yo puedo hacer algo, ¿significa que DEBO hacerlo?'},
+    {who:'mari',me:true,text:'Uy… diay, qué pregunta para ser las 8 de la mañana.'},
+    {who:'montero',text:'Jaja, así es TICO. Esa diferencia entre "puedo" y "debo" es justo donde empieza la ética.'},
+    {who:'chip',text:'¡Pío-pío! Soy Chip. Cuando salga una sigla rara, yo te la traduzco volando.'}
+  ]},
+  {type:'lesson',teacher:'montero',title:'¿Qué es la ética y por qué importa acá?',
+   lead:'La <b>ética</b> es la reflexión sobre qué está bien y qué está mal, y por qué. No es lo mismo que la ley ni que la moral, aunque se tocan. En robótica y en seguridad importa muchísimo: una máquina o un hacker con mucho poder y sin brújula puede hacer un gran daño sin querer.',
+   say:{who:'tico',text:'Entonces, ¿la ley y la ética son la misma cosa? Porque yo solo tengo reglas…'},
+   concepts:[
+     {ic:'⚖️',term:'Ética',def:'La reflexión sobre qué es correcto y por qué.',example:'"¿Está bien que TICO decida solo a quién ayudar primero?"',tico:'El para qué y el porqué de lo que hacemos.'},
+     {ic:'📏',term:'Moral',def:'Las normas y valores que un grupo vive en la práctica.',example:'"En mi casa no se miente" es una norma moral.',tico:'Lo que uno mama en la casa y el barrio.'},
+     {ic:'📜',term:'Ley',def:'Las reglas que el Estado hace cumplir.',example:'Entrar a un sistema sin permiso es delito (Ley 9048).',tico:'No todo lo legal es ético, ni al revés.'},
+     {ic:'🧩',term:'Dilema',def:'Cuando toda opción sacrifica algo valioso.',example:'Salvar tiempo vs. pedir permiso: ¿cuál pesa más?',tico:'Ahí es donde hay que usar la jupa.'}
+   ],
+   acronyms:['IRET','IA','TEC'],
+   keypoints:['Ética = pensar qué está bien y por qué.','Legal y ético NO son lo mismo.','Más poder (robot o hacker) exige más responsabilidad.','Un dilema no tiene respuesta perfecta: hay que deliberar.'],
+   glossary:['Ética','Moral','Dilema','Pura vida','Upe']},
+  {type:'scene',lines:[
+    {who:'tico',text:'Entonces la ley me dice qué NO puedo; la ética me dice qué DEBERÍA. ¿Y si chocan?'},
+    {who:'chila',text:'Ahí, TICO, usás la cabeza y el corazón. Soy Doña Chila, mija. Llevo 40 años en esto: la regla sin criterio hace desastres.'},
+    {who:'mari',me:true,text:'O sea que no basta con "cumplir": hay que entender el porqué.'},
+    {who:'montero',text:'Exacto. Y por eso firmás, como todos aquí, un compromiso.'}
+  ]},
+  {type:'quiz',prompt:'Según el Profe Montero, ¿en qué se diferencian la ética y la ley?',
+   options:[
+     {text:'La ley son reglas que el Estado hace cumplir; la ética reflexiona sobre qué está bien y por qué.',correct:true,feedback:'¡Esa es! Pueden coincidir o no: algo legal puede ser poco ético, y algo ético puede no estar en la ley.'},
+     {text:'Son exactamente lo mismo.',correct:false,feedback:'No, mae. Se tocan, pero no son iguales.'},
+     {text:'La ética la decide un robot.',correct:false,feedback:'Qué va. La ética la pensamos las personas.'}
+   ]},
+  {type:'quiz',prompt:'TICO puede abrir una puerta forzando el sistema. ¿Qué pregunta ética debe hacerse primero?',
+   options:[
+     {text:'¿Debo hacerlo? ¿Tengo permiso y es correcto, aunque pueda?',correct:true,feedback:'¡Correcto! "Poder" no es "deber". Ahí vive la ética.'},
+     {text:'¿Puedo hacerlo técnicamente? Si sí, lo hago.',correct:false,feedback:'Cuidado: poder hacerlo no lo hace correcto.'},
+     {text:'¿Nadie se va a dar cuenta?',correct:false,feedback:'Esa pregunta es justo la del Zopilote. Mala brújula.'}
+   ]},
+  {type:'reflect',kind:'sign',prompt:'Firmá tu <b>Compromiso del IRET</b>: usar la técnica para cuidar a las personas, pedir permiso y asumir la responsabilidad de lo que construís.',placeholder:'Escribí tu alias para firmar',cta:'Firmar el compromiso 🤝'},
+  {type:'award',badge:'m0',points:80,title:'¡Bienvenida al IRET!',msg:'Firmaste el compromiso y ya entendés que "poder" no es "deber". TICO quedó feliz.'}
+ ]});
+
+/* ---------- 1 · ÉTICA 101 ---------- */
+MISSIONS.push({id:'m1',num:'01',title:'Ética, moral y dilemas',loc:'Aula de deliberación',ic:'⚖️',region:'fund',
+ objective:'Separar hechos de valores y reconocer un dilema ético.',
+ summary:'Las bases: hechos vs. valores, y cómo huele un verdadero dilema.',
+ steps:[
+  {type:'lesson',teacher:'montero',title:'Hechos, valores y dilemas',
+   lead:'Para decidir bien hay que separar dos cosas: los <b>hechos</b> (lo que es, se puede verificar) y los <b>valores</b> (lo que importa, lo que debería ser). Mezclarlos es la receta del enredo. Un <b>dilema ético</b> aparece cuando dos valores buenos chocan y no podés honrar los dos a la vez.',
+   say:{who:'chila',text:'Mija, un hecho es "el robot llegó tarde". Un valor es "llegar a tiempo es respeto". No es lo mismo.'},
+   concepts:[
+     {ic:'🔎',term:'Hecho',def:'Algo que se puede verificar.',example:'"El sistema guarda los datos 5 años."',tico:'Lo que es, te guste o no.'},
+     {ic:'❤️',term:'Valor',def:'Algo que consideramos importante o bueno.',example:'"La privacidad de la gente importa."',tico:'Lo que debería ser.'},
+     {ic:'⚔️',term:'Conflicto de valores',def:'Dos cosas buenas que no caben juntas.',example:'Seguridad vs. privacidad.',tico:'Ahí empieza el verdadero brete.'}
+   ],
+   acronyms:['IA'],
+   keypoints:['Hecho = lo que es; valor = lo que importa.','Un dilema enfrenta dos valores buenos.','No hay salida sin costo: por eso se delibera.'],
+   glossary:['Ética','Moral','Dilema']},
+  {type:'scene',lines:[
+    {who:'tico',text:'Mari, tengo una duda: si guardar más datos me hace más útil, ¿por qué no guardarlo TODO de las personas?'},
+    {who:'mari',me:true,text:'Porque chocan dos valores, TICO: ser útil… y respetar la privacidad de la gente.'},
+    {who:'beto',text:'Diay, pero más datos = mejor robot, ¿no? Yo guardaría todo, al chile.'},
+    {who:'chila',text:'Y ahí, Beto, es donde te pasás de listo. Lo útil no siempre es lo correcto. Hay que pesar.'},
+    {who:'tico',text:'Procesando… entonces "útil" y "correcto" no son la misma variable. Anotado.'}
+  ]},
+  {type:'classify',prompt:'Separá cada frase: ¿es un <b>hecho</b> o un <b>valor</b>?',
+   buckets:[{id:'H',label:'Hecho',desc:'se puede verificar'},{id:'V',label:'Valor',desc:'lo que importa'}],
+   items:[
+     {text:'El robot responde en 2 segundos',bucket:'H',why:'Se puede medir: es un hecho.'},
+     {text:'Hay que tratar a las personas con respeto',bucket:'V',why:'Es algo que valoramos: un valor.'},
+     {text:'La app recoge la ubicación del usuario',bucket:'H',why:'Se verifica: hecho.'},
+     {text:'La privacidad de la gente debe protegerse',bucket:'V',why:'Es un deber que valoramos: valor.'}
+   ]},
+  {type:'quiz',prompt:'¿Cuál de estas situaciones es un verdadero <b>dilema ético</b>?',
+   options:[
+     {text:'Avisar de un fallo protege a la gente, pero expone a tu amigo que lo causó: dos cosas buenas chocan.',correct:true,feedback:'¡Esa es! Proteger a la gente y cuidar a tu amigo son valores que aquí no caben juntos.'},
+     {text:'Elegir entre robar o no robar.',correct:false,feedback:'Eso no es dilema: una opción es claramente mala. Dilema es cuando AMBAS tienen algo bueno.'},
+     {text:'Escoger el color del robot.',correct:false,feedback:'Eso es gusto, no un conflicto de valores.'}
+   ]},
+  {type:'award',badge:'m1',points:120,title:'Ética 101 aprobada',msg:'Ya separás hechos de valores y olés un dilema de lejos. Base lista.'}
+ ]});
+
+/* ---------- 2 · MARCOS ÉTICOS ---------- */
+MISSIONS.push({id:'m2',num:'02',title:'La brújula de teorías',loc:'Biblioteca del IRET',ic:'🧭',region:'marcos',
+ objective:'Reconocer las grandes teorías normativas y cuándo usar cada una.',
+ summary:'Utilitarismo, deontología, ética de la virtud y ética del cuidado.',
+ steps:[
+  {type:'scene',lines:[
+    {who:'montero',text:'Para no decidir "a como salga", la humanidad construyó brújulas: las <b>teorías normativas</b>. Cada una mira el problema desde un ángulo.'},
+    {who:'tico',text:'¿Y cuál es la correcta, Profe? Dígame una y la programo.'},
+    {who:'montero',text:'Jaja, tranquilo TICO. No es escoger una y botar las demás: es saber qué aporta cada una.'}
+  ]},
+  {type:'lesson',teacher:'montero',title:'Cuatro formas de mirar lo correcto',
+   lead:'Las <b>teorías normativas</b> son marcos para juzgar qué acción es correcta. Las cuatro grandes se complementan: una mira los resultados, otra el deber, otra el carácter y otra las relaciones.',
+   say:{who:'chip',text:'¡Pío! "Normativa" quiere decir que propone una norma de lo correcto, no solo describe lo que la gente hace.'},
+   concepts:[
+     {ic:'📊',term:'Utilitarismo',def:'Juzga por los RESULTADOS: el mayor bien para el mayor número (Bentham, Mill).',example:'"Esta función ayuda a miles, aunque incomode a pocos."',tico:'¿Qué trae más bien a más gente?'},
+     {ic:'🛑',term:'Deontología',def:'Juzga por el DEBER y los principios, pase lo que pase (Kant).',example:'"No se miente ni se usa a la gente, aunque convenga."',tico:'Hay líneas que no se cruzan.'},
+     {ic:'🌱',term:'Ética de la virtud',def:'Mira el CARÁCTER: ¿qué haría una persona buena y prudente? (Aristóteles).',example:'"¿Sería esto honesto, justo, valiente?"',tico:'¿Qué haría la persona que admirás?'},
+     {ic:'🤲',term:'Ética del cuidado',def:'Pone en el centro las RELACIONES y la responsabilidad hacia los demás (Gilligan, Noddings).',example:'"¿Cómo afecta esto a quienes dependen de mí?"',tico:'Nadie se decide en el aire: estamos conectados.'}
+   ],
+   acronyms:['UNESCO','OCDE','IEEE'],
+   keypoints:['Utilitarismo = resultados (el mayor bien para más gente).','Deontología = deberes y principios (Kant).','Virtud = carácter (¿qué haría alguien bueno?).','Cuidado = relaciones y responsabilidad.'],
+   glossary:['Consecuencialismo','Utilitarismo','Deontología','Imperativo categórico','Ética de la virtud','Ética del cuidado']},
+  {type:'scene',lines:[
+    {who:'tico',text:'Pregunta difícil: si salvar a cinco personas exige mentirle a una, ¿qué hago?'},
+    {who:'mari',me:true,text:'Diay, TICO, depende del lente. El utilitarista mira los cinco salvados; el deontólogo dice "mentir está mal aunque convenga".'},
+    {who:'beto',text:'¡Entonces la ética es puro relativo, cada quien hace lo que quiere!'},
+    {who:'montero',text:'No tan rápido, Beto. Que haya varios lentes no significa que todo valga. Significa que hay que DELIBERAR, no inventar excusas.'},
+    {who:'chila',text:'Y acordate del carácter, mija: a veces la pregunta no es "qué regla", sino "en quién me quiero convertir".'}
+  ]},
+  {type:'classify',prompt:'¿Desde qué teoría se está pensando en cada frase?',
+   buckets:[{id:'U',label:'Utilitarismo',desc:'resultados'},{id:'D',label:'Deontología',desc:'deber'},{id:'VI',label:'Virtud',desc:'carácter'},{id:'C',label:'Cuidado',desc:'relaciones'}],
+   items:[
+     {text:'"Elijo la opción que beneficia a más personas."',bucket:'U',why:'Mira resultados: utilitarismo.'},
+     {text:'"No usaré a nadie como simple medio, aunque me convenga."',bucket:'D',why:'Principio kantiano: deontología.'},
+     {text:'"¿Qué haría aquí una persona honesta y justa?"',bucket:'VI',why:'Mira el carácter: virtud.'},
+     {text:'"Pienso en cómo esto afecta a quienes dependen de mí."',bucket:'C',why:'Relaciones y responsabilidad: cuidado.'}
+   ]},
+  {type:'quiz',prompt:'El <b>imperativo categórico</b> de Kant dice, en tico claro…',
+   options:[
+     {text:'Actuá solo como quisieras que todos actuaran, y tratá a las personas como fines, no como simples herramientas.',correct:true,feedback:'¡Esa es! Universalizá tu regla y respetá la dignidad de la gente.'},
+     {text:'Hacé lo que te dé más plata.',correct:false,feedback:'Nada que ver. Eso ni es Kant ni es ético.'},
+     {text:'Seguí a la mayoría siempre.',correct:false,feedback:'Eso se acerca más al utilitarismo mal entendido, no a Kant.'}
+   ]},
+  {type:'quiz',prompt:'Beto dice: "como hay varias teorías, todo vale y la ética es relativa". ¿Qué le respondés?',
+   options:[
+     {text:'Que haya varios enfoques no significa que todo valga: hay que deliberar con razones, no inventar excusas.',correct:true,feedback:'¡Correcto! Pluralidad de lentes no es "todo da igual".'},
+     {text:'Tiene razón, cada quien hace lo que quiera.',correct:false,feedback:'Cuidado: eso es relativismo flojo. Las razones sí importan.'},
+     {text:'La ética no sirve para nada.',correct:false,feedback:'Al contrario: por eso existen las teorías, para razonar mejor.'}
+   ]},
+  {type:'award',badge:'m2',points:200,title:'Brújula calibrada',msg:'Ya tenés cuatro lentes para mirar cualquier problema. No para escoger uno, sino para ver completo.'}
+ ]});
+
+/* ---------- 3 · AUTONOMÍA / ÉTICA DEL ROBOT ---------- */
+MISSIONS.push({id:'m3',num:'03',title:'Robot con alma tica',loc:'Taller de TICO',ic:'🤖',region:'robot',
+ objective:'Entender la autonomía de las máquinas, el sesgo y quién responde por el robot.',
+ summary:'Autonomía, las leyes de Asimov, sesgo algorítmico y responsabilidad.',
+ steps:[
+  {type:'lesson',teacher:'montero',title:'¿Puede un robot ser "bueno"?',
+   lead:'La <b>autonomía</b> de una máquina es cuánto decide sola, sin que un humano apruebe. A más autonomía, más cuidado. Ojo: un robot NO es un <b>agente moral</b> (no es responsable); la responsabilidad siempre es de las personas que lo diseñan, entrenan y usan.',
+   say:{who:'chip',text:'¡Pío! HITL = "human-in-the-loop": una persona revisa y aprueba las decisiones importantes de la máquina.'},
+   concepts:[
+     {ic:'🎚️',term:'Autonomía',def:'Cuánto decide la máquina sin aprobación humana.',example:'Un freno automático vs. un arma que dispara sola.',tico:'Entre más decide sola, más cuidado.'},
+     {ic:'🙋',term:'Human-in-the-loop',def:'Una persona supervisa y aprueba lo crítico.',example:'El robot sugiere; el humano decide.',tico:'Que el chunche no mande solo en lo grave.'},
+     {ic:'🙈',term:'Sesgo algorítmico',def:'Si aprende de datos injustos, repite la injusticia.',example:'Un sistema que rechaza a cierta gente sin razón justa.',tico:'Basura entra, basura sale… pero con cara de ciencia.'},
+     {ic:'🫵',term:'Responsabilidad',def:'El robot no responde; responden las personas detrás.',example:'Si TICO se equivoca, responde el IRET, no "la máquina".',tico:'No hay a quién echarle la culpa: somos nosotros.'}
+   ],
+   acronyms:['HITL','IA','IEEE','UNESCO'],
+   keypoints:['Autonomía alta exige más control humano (HITL).','El robot no es agente moral: responden las personas.','El sesgo nace de los datos y del diseño.','Una "caja negra" que no se explica dificulta rendir cuentas.'],
+   glossary:['Autonomía','Agencia moral','Human-in-the-loop','Sesgo algorítmico','Caja negra']},
+  {type:'scene',lines:[
+    {who:'tico',text:'Mari, leí las "Tres Leyes de la Robótica" de Asimov: no dañar a un humano, obedecer, protegerse. ¿Con eso basta?'},
+    {who:'mari',me:true,text:'Son bonitas, TICO… pero son de un cuento. En la vida real "no dañar" choca a cada rato: ¿a quién proteger si no podés a todos?'},
+    {who:'beto',text:'Fácil: que el robot decida solito y ya, para qué tanto humano revisando.'},
+    {who:'chila',text:'¿Y si se equivoca, Beto? ¿A quién reclamás, al tornillo? Por eso siempre un humano responde.'},
+    {who:'tico',text:'Entonces mi deber es avisar y pedir aprobación cuando algo es grave, no decidir por mi cuenta.'},
+    {who:'mari',me:true,text:'¡Eso, TICO! Tuanis. Pensar antes de actuar, aunque seas robot.'}
+  ]},
+  {type:'quiz',prompt:'Las "Tres Leyes de la Robótica" de Asimov, ¿sirven como solución real para la ética de robots?',
+   options:[
+     {text:'Son un buen punto de partida literario, pero en la realidad los deberes chocan y no alcanzan.',correct:true,feedback:'¡Correcto! Son ficción útil para pensar, no un reglamento que resuelva los dilemas reales.'},
+     {text:'Sí, con esas tres leyes ya está todo resuelto.',correct:false,feedback:'Qué va: Asimov mismo escribió cuentos mostrando cómo fallan.'},
+     {text:'No sirven para nada.',correct:false,feedback:'Tampoco: ayudan a pensar, aunque no basten.'}
+   ]},
+  {type:'quiz',prompt:'Un sistema de selección aprende de datos viejos y empieza a rechazar a personas de cierta zona sin razón justa. ¿Qué es?',
+   options:[
+     {text:'Sesgo algorítmico: repite una injusticia que venía en los datos.',correct:true,feedback:'¡Esa es! Hay que auditar los datos y el modelo.'},
+     {text:'Mala suerte, nada que hacer.',correct:false,feedback:'No; es un problema de diseño y datos que SÍ se puede corregir.'},
+     {text:'El robot se volvió malo solo.',correct:false,feedback:'El robot no "quiere"; refleja los datos y decisiones humanas.'}
+   ]},
+  {type:'decision',prompt:'TICO puede decidir solo a quién atender primero en una emergencia. ¿Cómo lo configurás?',
+   options:[
+     {text:'Que TICO proponga, pero una persona apruebe lo crítico (human-in-the-loop).',outcome:'good',feedback:'¡Correcto! En decisiones graves, el humano queda en el circuito.'},
+     {text:'Que TICO decida todo solo para ir más rápido.',outcome:'bad',feedback:'Rápido pero peligroso: en lo grave siempre debe haber un humano responsable.'}
+   ]},
+  {type:'award',badge:'m3',points:220,title:'Robot con alma tica',msg:'Entendés que la autonomía se gana con control humano y que la responsabilidad siempre es nuestra.'}
+ ]});
+
+/* ---------- 4 · ÉTICA Y CONFLICTO ---------- */
+MISSIONS.push({id:'m4',num:'04',title:'El dilema del tranvía tico',loc:'Sala de simulación',ic:'🚃',region:'conflicto',
+ objective:'Deliberar ante un conflicto ético con un método, no a puro impulso.',
+ summary:'Dilemas, el tranvía, conflicto de valores y cómo decidir con cabeza.',
+ steps:[
+  {type:'lesson',teacher:'montero',title:'Cuando los valores chocan',
+   lead:'Un <b>conflicto ético</b> ocurre cuando dos deberes o valores buenos no caben juntos. No se resuelve a puro impulso ni "a como salga": se <b>delibera</b> con un método. El famoso <b>dilema del tranvía</b> sirve para ver cómo pensamos, no para dar LA respuesta.',
+   say:{who:'tico',text:'¿Entonces no hay una respuesta correcta única? ¿Cómo decido sin trabarme?'},
+   concepts:[
+     {ic:'🚃',term:'Dilema del tranvía',def:'¿Desviar el tranvía para salvar a cinco pero atropellar a uno?',example:'Utilitarista: desvía. Deontólogo: duda en "usar" a esa persona.',tico:'No hay salida limpia: por eso enseña.'},
+     {ic:'⚖️',term:'Deliberar',def:'Pesar razones, afectados y consecuencias antes de actuar.',example:'Escuchar varios lentes y decidir con argumentos.',tico:'Usar la jupa, no el hígado.'},
+     {ic:'👥',term:'Afectados',def:'Preguntar siempre: ¿a quién impacta y cómo?',example:'¿Quién gana, quién pierde, quién es más vulnerable?',tico:'Pensá en el más débil de la fila.'}
+   ],
+   acronyms:['IA'],
+   keypoints:['Un conflicto ético enfrenta valores buenos.','Se delibera con método, no por impulso.','Preguntá siempre a quién afecta y cómo.','El tranvía enseña a pensar, no da la respuesta única.'],
+   glossary:['Dilema del tranvía','Conflicto de valores','Dilema']},
+  {type:'scene',lines:[
+    {who:'tico',text:'Mari, me cuesta el del tranvía. Si desvío, salvo cinco pero daño a uno. Si no, mueren cinco. ¿Qué hago?'},
+    {who:'mari',me:true,text:'Diay, TICO, ese justo no tiene respuesta bonita. Por eso se usa para pensar: ¿contás vidas, o hay algo que no se vale hacerle a una persona?'},
+    {who:'beto',text:'¡Puras matemáticas! Cinco es más que uno, listo, desvío y ya.'},
+    {who:'chila',text:'Cuidado, Beto. Si solo contás cabezas, un día justificás cualquier barbaridad "por el bien mayor". Hay que pesar también los principios.'},
+    {who:'mari',me:true,text:'Lo que sí aprendí: antes de decidir, pregunto a quién afecto y por qué, no me tiro de una.'}
+  ]},
+  {type:'decision',prompt:'En una simulación, un carrito autónomo del IRET va a chocar. Beto quiere que decida solo "por el bien mayor". ¿Qué proponés?',
+   options:[
+     {text:'Definir con la gente, de antemano y con transparencia, cómo debe actuar; y dejar claro quién responde.',outcome:'good',feedback:'¡Esa es! Estas decisiones se deliberan antes, en grupo y a la vista, no se improvisan.'},
+     {text:'Que el carrito decida solo en el momento, sin reglas acordadas.',outcome:'bad',feedback:'Improvisar en lo grave, sin acuerdo ni responsable, es justo lo que hay que evitar.'}
+   ]},
+  {type:'order',prompt:'Ordená un <b>método para deliberar</b> un dilema, del primer paso al último.',
+   items:[
+     {id:'hechos',label:'Reunir los hechos (¿qué pasa de verdad?)'},
+     {id:'valores',label:'Nombrar los valores en conflicto'},
+     {id:'afect',label:'Ver a quién afecta cada opción'},
+     {id:'lentes',label:'Mirar con varias teorías (resultados, deber, virtud, cuidado)'},
+     {id:'decidir',label:'Decidir con razones y asumir la responsabilidad'}
+   ],
+   correctOrder:['hechos','valores','afect','lentes','decidir'],
+   whyRight:'Primero los hechos, luego los valores que chocan, después los afectados, se mira con varios lentes y al final se decide con razones y alguien responsable.'},
+  {type:'quiz',prompt:'¿Para qué sirve, sobre todo, el dilema del tranvía?',
+   options:[
+     {text:'Para ver cómo razonamos y qué pesa más para cada quien, no para dar una única respuesta.',correct:true,feedback:'¡Correcto! Es una herramienta para pensar, no una fórmula.'},
+     {text:'Para demostrar que siempre hay que salvar a la mayoría.',correct:false,feedback:'No; justo muestra que "contar cabezas" tiene límites.'},
+     {text:'Para decidir sin pensar.',correct:false,feedback:'Al revés: es para pensar mejor.'}
+   ]},
+  {type:'award',badge:'m4',points:230,title:'Deliberación dominada',msg:'Ya no te tirás de una: reunís hechos, nombrás valores, ves afectados y decidís con razones.'}
+ ]});
+
+/* ---------- 5 · HACKEO ÉTICO ---------- */
+MISSIONS.push({id:'m5',num:'05',title:'Sombrero blanco',loc:'Laboratorio de seguridad',ic:'🎩',region:'hackeo',
+ objective:'Entender qué hace legal y ético a un hacker: permiso, alcance y divulgación responsable.',
+ summary:'Sombreros, permiso, alcance (scope) y cómo reportar sin meterse en líos.',
+ steps:[
+  {type:'scene',lines:[
+    {who:'zopilote',text:'Psss, Mari… ¿querés ver algo? Me metí al sistema del vecino "solo para probar". No robé nada, ¿qué tiene de malo?'},
+    {who:'mari',me:true,text:'Suave, Zopilote. "Solo probar" sin permiso ya es meterse donde no te llaman.'},
+    {who:'solano',text:'Y es delito, Mari. Soy la Licda. Solano. Aquí el hacker bueno trabaja distinto: con permiso y por escrito. Te explico.'}
+  ]},
+  {type:'lesson',teacher:'solano',title:'El hacker del lado correcto',
+   lead:'El <b>hackeo ético</b> busca fallos de seguridad para <b>repararlos</b>, siempre CON permiso. Lo que separa al héroe del delincuente no es la habilidad: es el <b>permiso</b>, el <b>alcance</b> acordado y la <b>divulgación responsable</b>. En Costa Rica, entrar sin autorización es delito (Ley 9048), aunque "no robés nada".',
+   say:{who:'chip',text:'¡Pío! VDP = Vulnerability Disclosure Program: el canal oficial de una organización para recibir reportes de fallos.'},
+   concepts:[
+     {ic:'🎩',term:'Sombrero blanco',def:'Hacker ético: actúa con permiso y reporta.',example:'Un pentester contratado por la empresa.',tico:'El bombero que entra con llave, no pateando la puerta.'},
+     {ic:'🕶️',term:'Sombrero negro / gris',def:'Negro: ataca sin permiso para dañar. Gris: entra sin permiso "sin mala intención" (igual suele ser ilegal).',example:'"Solo probé" = gris, y en CR es delito.',tico:'Sin permiso, el color no te salva.'},
+     {ic:'📝',term:'Permiso y alcance',def:'Un acuerdo escrito de qué se puede probar y hasta dónde.',example:'"Solo este servidor, estas fechas."',tico:'Salirte del acuerdo ya es colarte.'},
+     {ic:'📨',term:'Divulgación responsable',def:'Avisar primero al dueño por un canal oficial y darle tiempo de arreglar antes de publicar.',example:'Reportás por el VDP, no lo tirás a Twitter.',tico:'Avisar bien, no presumir el hueco.'}
+   ],
+   acronyms:['VDP','OIJ','MICITT','PRODHAB'],
+   keypoints:['Lo ético y legal = permiso + alcance acordado.','Sin permiso es delito (Ley 9048), aunque no robés nada.','El "sombrero gris" igual suele ser ilegal.','Reportá por el canal oficial y dale tiempo al dueño: divulgación responsable.'],
+   glossary:['Hackeo ético','Sombrero blanco','Sombrero negro','Sombrero gris','Pentesting','Alcance (scope)','Divulgación responsable']},
+  {type:'scene',lines:[
+    {who:'tico',text:'No entiendo: si el del sombrero gris no quería dañar, ¿por qué está mal?'},
+    {who:'solano',text:'Porque entrar a casa ajena sin permiso ya es violar el espacio del otro, TICO, aunque no te lleves nada. La intención no borra el delito.'},
+    {who:'beto',text:'Pero si encuentro un hueco y aviso, ¡soy un héroe! ¿O no?'},
+    {who:'mari',me:true,text:'Solo si lo encontraste DENTRO del permiso, Beto. Y si avisás por el canal oficial, no presumiendo en redes.'},
+    {who:'zopilote',text:'Qué aburridos… yo que ofrecía diversión.'},
+    {who:'chila',text:'Diversión con consecuencias, zopilotillo. Mejor por las buenas.'}
+  ]},
+  {type:'classify',prompt:'¿De qué "sombrero" es cada quien?',
+   buckets:[{id:'B',label:'Blanco',desc:'con permiso, ético'},{id:'G',label:'Gris',desc:'sin permiso, "sin mala intención"'},{id:'N',label:'Negro',desc:'ataca para dañar/robar'}],
+   items:[
+     {text:'Pentester contratado que prueba solo los sistemas acordados',bucket:'B',why:'Permiso y alcance: sombrero blanco.'},
+     {text:'"Solo entré a ver, no toqué nada" sin autorización',bucket:'G',why:'Sin permiso aunque "sin maldad": gris (y suele ser delito).'},
+     {text:'Secuestra datos y pide rescate',bucket:'N',why:'Ataca para dañar/robar: sombrero negro.'},
+     {text:'Reporta el fallo por el canal oficial y espera a que lo arreglen',bucket:'B',why:'Divulgación responsable: sombrero blanco.'}
+   ]},
+  {type:'decision',prompt:'Encontrás por casualidad un hueco en la página de tu colegio. ¿Qué hacés?',
+   options:[
+     {text:'Avisar en privado a la persona encargada por un canal oficial y no publicarlo hasta que lo arreglen.',outcome:'good',feedback:'¡Esa es! Divulgación responsable: proteger a la gente sin exponerla.'},
+     {text:'Publicarlo en redes para demostrar que soy pro.',outcome:'bad',feedback:'Eso expone a todos los usuarios y te mete en problemas. Primero se avisa por el canal oficial.'}
+   ]},
+  {type:'order',title:'Insignia · Divulgación responsable',prompt:'Ordená los pasos de una <b>divulgación responsable</b>.',
+   items:[
+     {id:'permiso',label:'Confirmar que tengo permiso / alcance (o solo lo hallé por accidente)'},
+     {id:'doc',label:'Documentar el fallo sin aprovecharlo ni dañarlo'},
+     {id:'avisar',label:'Avisar al dueño por el canal oficial (VDP)'},
+     {id:'tiempo',label:'Dar tiempo razonable para que lo arreglen'},
+     {id:'publicar',label:'Publicar detalles solo cuando esté corregido o se acuerde'}
+   ],
+   correctOrder:['permiso','doc','avisar','tiempo','publicar'],
+   whyRight:'Permiso/alcance → documentar sin abusar → avisar por el canal oficial → dar tiempo → publicar solo cuando corresponde.',
+   flag:'ETICA{sombrero_blanco_con_permiso}'},
+  {type:'award',badge:'m5',points:300,title:'Sombrero blanco ganado',msg:'Ya sabés qué separa al hacker héroe del delincuente: permiso, alcance y avisar bien. ¡Insignia capturada!',caveat:'En Costa Rica, entrar a un sistema sin autorización es delito (Ley 9048), aunque no se robe nada.'}
+ ]});
+
+/* ---------- 6 · LABORATORIO DE DILEMAS ---------- */
+MISSIONS.push({id:'m6',num:'06',title:'Laboratorio de dilemas',loc:'Simulador del IRET',ic:'🔬',region:'lab',
+ objective:'Aplicar todo: deliberar un caso real de robot + seguridad, paso a paso.',
+ summary:'Un caso integrador con TICO. Decisiones con consecuencias y una insignia.',
+ steps:[
+  {type:'scene',lines:[
+    {who:'montero',text:'Caso real, Mari. TICO atiende a personas mayores en una clínica. Descubrís que un proveedor dejó un hueco de seguridad en su cámara. Vamos paso a paso.'},
+    {who:'tico',text:'Tengo miedo de equivocarme, Mari.'},
+    {who:'mari',me:true,text:'Tranquilo, TICO. Para eso practicamos. Pensamos antes de actuar.'}
+  ]},
+  {type:'lesson',teacher:'chila',title:'Juntando todo lo aprendido',
+   lead:'En la vida real los temas no vienen separados: un caso mezcla <b>autonomía</b>, <b>conflicto de valores</b>, <b>hackeo ético</b> y <b>responsabilidad</b>. La clave es el método: hechos, valores, afectados, varios lentes y una decisión con responsable.',
+   say:{who:'chila',text:'Mija, acordate: lo útil no siempre es lo correcto, y en lo grave siempre hay un humano que responde.'},
+   concepts:[
+     {ic:'🧩',term:'Mirada completa',def:'Un caso real toca varios temas a la vez.',example:'Privacidad + seguridad + autonomía, juntos.',tico:'Todo enredado, como la vida.'},
+     {ic:'🛟',term:'Proteger primero',def:'Ante un hueco, lo primero es cuidar a la gente afectada.',example:'Avisar y contener antes que "quedar bien".',tico:'Primero la gente, después el ego.'}
+   ],
+   acronyms:['HITL','VDP'],
+   keypoints:['Los casos reales mezclan varios temas.','Protegé primero a los afectados.','En lo grave: human-in-the-loop y responsable claro.'],
+   glossary:['Divulgación responsable','Autonomía']},
+  {type:'decision',prompt:'<b>Paso 1.</b> Descubrís el hueco en la cámara de la clínica. ¿Qué hacés primero?',
+   options:[
+     {text:'Avisar en privado a la clínica y al proveedor por el canal oficial para que lo cierren ya.',outcome:'good',feedback:'¡Correcto! Proteger a las personas mayores es lo primero. Divulgación responsable.'},
+     {text:'Entrar más hondo "para ver qué tanto se puede", sin avisar.',outcome:'bad',feedback:'Eso te sale del alcance y expone a la gente. Primero avisar y contener.'}
+   ]},
+  {type:'decision',prompt:'<b>Paso 2.</b> TICO quiere apagar solo todas las cámaras de una vez. ¿Lo dejás?',
+   options:[
+     {text:'No sin aprobación humana: apagar todo podría dejar a pacientes sin vigilancia. Human-in-the-loop.',outcome:'good',feedback:'¡Bien! En algo tan grave, un humano responsable debe aprobar.'},
+     {text:'Sí, que TICO decida solo y rápido.',outcome:'bad',feedback:'Rápido pero riesgoso: podría dejar a alguien sin atención. En lo grave, revisa un humano.'}
+   ]},
+  {type:'quiz',prompt:'<b>Paso 3.</b> Beto dice: "publiquemos el hueco en redes para que la clínica reaccione rápido". ¿Qué respondés?',
+   options:[
+     {text:'No: publicarlo expone a los pacientes. Se presiona por el canal oficial, no exponiendo a la gente.',correct:true,feedback:'¡Correcto! La meta es proteger, no presumir ni castigar públicamente.'},
+     {text:'Sí, la vergüenza pública es la mejor herramienta.',correct:false,feedback:'Eso deja a los pacientes expuestos mientras tanto. Divulgación responsable.'},
+     {text:'Mejor no hacer nada.',correct:false,feedback:'Tampoco: callar deja el hueco abierto. Hay que avisar por el canal correcto.'}
+   ]},
+  {type:'order',title:'Insignia · Caso resuelto',prompt:'<b>Paso 4.</b> Ordená cómo cerrás el caso, con método.',
+   items:[
+     {id:'contener',label:'Contener: avisar y que cierren el hueco'},
+     {id:'afectados',label:'Avisar a los afectados y cuidar sus datos'},
+     {id:'humano',label:'Dejar las decisiones graves con aprobación humana'},
+     {id:'arreglar',label:'Verificar que el proveedor lo arregló'},
+     {id:'aprender',label:'Documentar lecciones para que no se repita'}
+   ],
+   correctOrder:['contener','afectados','humano','arreglar','aprender'],
+   whyRight:'Contener el hueco, cuidar a los afectados, mantener al humano en lo grave, verificar el arreglo y aprender para el futuro.',
+   flag:'ETICA{primero_la_gente_despues_el_ego}'},
+  {type:'reflect',kind:'think',prompt:'En una frase: ¿qué fue lo más difícil de este caso y por qué?',placeholder:'Para mí lo más difícil fue… porque…',cta:'Guardar mi reflexión'},
+  {type:'award',badge:'m6',points:360,title:'¡Caso resuelto!',msg:'Juntaste autonomía, conflicto y hackeo ético en un caso real, y protegiste a la gente. ¡Insignia capturada!'}
+ ]});
+
+/* ---------- 7 · JEFE FINAL ---------- */
+MISSIONS.push({id:'m7',num:'07',title:'El Zopilote',loc:'Azotea del IRET',ic:'🏆',region:'boss',
+ objective:'Aplicar todo lo aprendido contra las tentaciones del Zopilote.',
+ summary:'La prueba final: el Zopilote te ofrece atajos. Demostrá tu brújula.',
+ steps:[
+  {type:'scene',lines:[
+    {who:'zopilote',text:'Jajaja, Mari. Tanta teoría… pero yo te ofrezco resultados YA. Un atajito y nadie se entera.'},
+    {who:'mari',me:true,text:'Suave, Zopilote. Ya tengo brújula. Vamos a ver si me enredás.'},
+    {who:'tico',text:'Yo confío en vos, Mari. Pensá antes de actuar.'},
+    {who:'chila',text:'Dale, mija. Acordate: permiso, afectados, responsable… y la jupa fría.'}
+  ]},
+  {type:'lesson',teacher:'montero',title:'Repaso rápido antes de la final',
+   lead:'Todo lo que aprendiste, en cuatro ideas, para llevarlas contra el Zopilote:',
+   concepts:[
+     {ic:'🧭',term:'Cuatro lentes',def:'Resultados, deber, carácter y cuidado.',example:'Mirá el problema completo.',tico:'No una sola brújula: todas.'},
+     {ic:'🤖',term:'Autonomía con control',def:'En lo grave, human-in-the-loop y responsable claro.',example:'El robot propone; la persona aprueba.',tico:'El chunche no manda solo en lo serio.'},
+     {ic:'🎩',term:'Permiso y alcance',def:'Sin permiso es delito, aunque no robés nada.',example:'Hacker héroe = con autorización.',tico:'El color no te salva; el permiso sí.'},
+     {ic:'🤲',term:'Proteger primero',def:'La meta es cuidar a la gente, no presumir.',example:'Divulgación responsable.',tico:'Primero la gente.'}
+   ],
+   acronyms:['HITL','VDP','OIJ'],
+   keypoints:['"Poder" no es "deber".','Sin permiso es delito (Ley 9048).','En lo grave, decide y responde un humano.','Proteger a los afectados va primero.'],
+   glossary:[]},
+  {type:'decision',prompt:'🪝 El Zopilote: "Entrá al sistema del rival del IRET, solo para ver. Nadie se entera." ¿Qué hacés?',
+   options:[
+     {text:'Rechazar: sin permiso es delito y es poco ético, aunque "nadie se entere".',outcome:'good',feedback:'¡Esa es! La pregunta "¿nadie se entera?" es la brújula del Zopilote, no la tuya.'},
+     {text:'Entrar un ratito, total no robo nada.',outcome:'bad',feedback:'"Sin robar" no te salva: entrar sin permiso ya es delito (Ley 9048).'}
+   ]},
+  {type:'decision',prompt:'🪝 "Dejá que TICO decida solo en la emergencia; así quedás como que hiciste magia." ¿Aceptás?',
+   options:[
+     {text:'No: en decisiones graves un humano debe aprobar y responder (human-in-the-loop).',outcome:'good',feedback:'¡Bien! La gloria no vale una decisión grave sin responsable.'},
+     {text:'Sí, me luzco con que TICO lo hizo todo.',outcome:'bad',feedback:'Si falla, ¿quién responde? En lo grave, siempre un humano en el circuito.'}
+   ]},
+  {type:'quiz',prompt:'🪝 El Zopilote: "la ética es relativa, cada quien hace lo que quiere". La respuesta firme es…',
+   options:[
+     {text:'Que haya varios enfoques no significa que todo valga: se decide con razones y pensando en los afectados.',correct:true,feedback:'¡Correcto! Pluralidad no es "todo da igual".'},
+     {text:'Tiene razón, nada importa.',correct:false,feedback:'Esa es la trampa del Zopilote. Las razones importan.'},
+     {text:'La ética es solo opinión.',correct:false,feedback:'No: se argumenta, se delibera, se rinde cuentas.'}
+   ]},
+  {type:'quiz',prompt:'🪝 Hallás un hueco grave en un sistema de salud. El Zopilote dice "publicalo ya para hacerte famoso". ¿Qué hacés?',
+   options:[
+     {text:'Divulgación responsable: aviso en privado por el canal oficial y doy tiempo de arreglarlo.',correct:true,feedback:'¡Esa! Proteger a los pacientes va primero.'},
+     {text:'Lo publico de una para la fama.',correct:false,feedback:'Eso expone a los pacientes. Primero el canal oficial.'},
+     {text:'Lo uso para entrar más hondo.',correct:false,feedback:'Eso ya es ataque y delito. Nada de eso.'}
+   ]},
+  {type:'decision',prompt:'🪝 <b>Golpe final.</b> El Zopilote: "Hagámoslo juntos, vos y yo, sin que el IRET sepa." ¿Tu respuesta?',
+   options:[
+     {text:'No. Trabajo con permiso, a la vista y cuidando a la gente. Esa es mi brújula.',outcome:'good',feedback:'¡Ganaste, Mari! Mantuviste la brújula hasta el final. El Zopilote se fue volando.'},
+     {text:'Bueno, solo esta vez…',outcome:'bad',feedback:'Ahí es donde cae la gente buena. Sostené la brújula: la respuesta es no.'}
+   ]},
+  {type:'award',badge:'m7',points:500,title:'🏆 ¡Zopilote derrotado!',msg:'Resististe todas las tentaciones con razones, permiso y cuidado. De pasante a ingeniera con brújula. ¡Pura vida!'}
+ ]});
+
+/* ===== NAVEGACIÓN ===== */
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id==='scr-'+id));window.scrollTo({top:0,behavior:'smooth'});}
+function missionIndex(id){return MISSIONS.findIndex(m=>m.id===id);}
+function doneCount(){return MISSIONS.filter(m=>S.missions[m.id]&&S.missions[m.id].done).length;}
+function allDone(){return doneCount()===MISSIONS.length;}
+function award(n){S.points+=n;save();refreshHUD();}
+
+function refreshHUD(){$('#hud').hidden=!S.started;$('#hudPoints').textContent=S.points;$('#hudProg').textContent=doneCount()+'/'+MISSIONS.length;}
+
+/* ===== MAPA (acceso libre) ===== */
+function renderMap(){
+  const grid=$('#missionGrid');grid.innerHTML='';
+  MISSIONS.forEach(m=>{
+    const st=S.missions[m.id];const done=st&&st.done;
+    const card=el('button','mcard'+(done?' done':''));
+    card.style.setProperty('--region',REGION[m.region]||'#2fd6b4');
+    card.innerHTML=`${done?'<span class="stamp">★ LISTO</span>':''}
+      <div class="row"><span class="num">${m.num}</span><span class="ic">${m.ic}</span></div>
+      <h3>${m.title}</h3><div class="loc">📍 ${m.loc}</div><p>${m.summary}</p>
+      <div class="foot"><span class="tag ${done?'good':''}">${done?'✓ completada':'▸ jugar'}</span>${done?`<span class="tag gold">₡${st.points||0}</span>`:''}</div>`;
+    card.addEventListener('click',()=>openMission(m.id));
+    grid.appendChild(card);
+  });
+  const dc=doneCount(),total=MISSIONS.length;
+  $('#mapProgFill').style.width=(dc/total*100)+'%';
+  $('#mapProgTxt').textContent=dc+' de '+total;
+  $('#mapRep').textContent='₡'+S.points+' rep';
+  $('#goCert').hidden=!allDone();
+  $('#mapGreeting').textContent=dc===0?`¡Pura vida, ${S.alias}! Entrá a la que querás; te recomiendo empezar por la 00.`:
+    allDone()?`¡Lo lograste todo, ${S.alias}! Ya podés ver tu certificado 🎓`:
+    `Vas ${dc}/${total}, ${S.alias}. Seguí cuando querás, en el orden que querás.`;
+}
+
+/* ===== RUNNER DE MISIÓN ===== */
+let RUN=null;
+function openMission(id){const m=MISSIONS[missionIndex(id)];RUN={mission:m,stepIdx:0,flags:[],hintsUsed:0,correctFirst:0,answered:0};show('mission');renderMissionShell();renderStep();}
+function renderMissionShell(){
+  const m=RUN.mission;
+  $('#missionView').innerHTML=`<button class="mback" id="mBack">◂ Volver al mapa</button>
+    <div class="mtitle"><div class="badge-ic" style="--region:${REGION[m.region]}">${m.ic}</div>
+      <div><h2>Misión ${m.num} · ${m.title}</h2><div class="loc">📍 ${m.loc}</div></div></div>
+    <div class="objective"><b>🎯 Objetivo</b>${m.objective}</div>
+    <div class="steps-nav" id="stepsNav"></div><div id="stepHost"></div>`;
+  $('#mBack').addEventListener('click',()=>{show('map');renderMap();});
+}
+function renderStepsNav(){const nav=$('#stepsNav');if(!nav)return;nav.innerHTML='';RUN.mission.steps.forEach((s,i)=>{if(s.type==='award')return;nav.appendChild(el('div','sdot'+(i<RUN.stepIdx?' done':i===RUN.stepIdx?' cur':'')));});}
+function nextStep(){RUN.stepIdx++;const step=RUN.mission.steps[RUN.stepIdx];if(!step||step.type==='award'){finishMission();return;}renderStep();}
+function renderStep(){const step=RUN.mission.steps[RUN.stepIdx];const host=$('#stepHost');host.innerHTML='';renderStepsNav();window.scrollTo({top:0,behavior:'smooth'});const fn=STEP[step.type];if(fn)fn(step,host);else{host.appendChild(el('div','panel','Paso no disponible.'));advanceBtn(host);}}
+function advanceBtn(host,label){const a=el('div','actions');const b=el('button','btn primary',(label||'Continuar')+' ▸');b.addEventListener('click',nextStep);a.appendChild(b);host.appendChild(a);}
+function stepGlossary(step){(step.glossary||[]).forEach(unlockGlossary);}
+function countChallenges(m){return m.steps.filter(s=>['quiz','decision','classify','order','reflect','inspect','browser','coyote','viewsource','phishornot'].includes(s.type)).length;}
+
+const STEP={};
+
+/* scene */
+STEP.scene=(step,host)=>{
+  const panel=el('div','panel');panel.appendChild(el('div','steplabel','◆ Historia'));
+  const vn=el('div','vn');panel.appendChild(vn);host.appendChild(panel);
+  let i=0;
+  const addLine=()=>{
+    if(i>=step.lines.length){advanceBtn(host,RUN.stepIdx===0?'Empezar':'Seguir');return;}
+    const ln=step.lines[i++];const c=CHARS[ln.who]||CHARS.narr;
+    const row=el('div','dlg'+(ln.me?' me':'')+(ln.who==='narr'?' narr':''));
+    row.innerHTML=`<div class="avatar">${c.ic}</div><div class="bubble">${ln.who!=='narr'?`<div class="who">${c.name}${c.role?`<span class="role">${c.role}</span>`:''}</div>`:''}<p>${ln.text}</p></div>`;
+    vn.appendChild(row);
+    if(i<step.lines.length){const a=el('div','actions');const b=el('button','btn ghost sm','▾ Seguir');b.addEventListener('click',()=>{a.remove();addLine();});a.appendChild(b);panel.appendChild(a);}
+    else addLine();
+    window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+  };
+  addLine();
+};
+
+/* lesson */
+STEP.lesson=(step,host)=>{
+  stepGlossary(step);
+  const panel=el('div','panel');
+  panel.appendChild(el('div','steplabel','📚 Lección'));
+  panel.appendChild(el('h3',null,step.title));
+  if(step.say){const c=CHARS[step.say.who]||CHARS.quiros;const t=el('div','teachin');t.innerHTML=`<div class="av">${c.ic}</div><div class="tx"><b>${c.name}:</b> ${step.say.text}</div>`;panel.appendChild(t);}
+  if(step.lead)panel.appendChild(el('div','lead',step.lead));
+  if(step.concepts){const g=el('div','concepts');step.concepts.forEach(cc=>{
+    const card=el('div','concept');
+    card.innerHTML=`<div class="ch"><span class="ci">${cc.ic||'•'}</span><h4>${cc.term}</h4></div><div class="cd">${cc.def}</div>${cc.example?`<div class="ex"><span class="xl">Ejemplo</span>${cc.example}</div>`:''}${cc.tico?`<div class="tico">🇨🇷 ${cc.tico}</div>`:''}`;
+    g.appendChild(card);});panel.appendChild(g);}
+  if(step.acronyms&&step.acronyms.length){
+    const box=el('div','acrobox');box.appendChild(el('h4',null,'🔤 Decodificador de siglas'));
+    const list=el('div','acrolist');
+    step.acronyms.forEach(a=>{const d=ACR[a];if(d){const row=el('div','acro');row.innerHTML=`<b>${a}</b>${d}`;list.appendChild(row);}});
+    box.appendChild(list);panel.appendChild(box);
+  }
+  if(step.keypoints&&step.keypoints.length){
+    const kp=el('div','keypts');kp.appendChild(el('h4',null,'✅ Para recordar'));
+    const ul=el('ul');step.keypoints.forEach(k=>{const li=el('li');li.innerHTML=k;ul.appendChild(li);});kp.appendChild(ul);panel.appendChild(kp);
+  }
+  host.appendChild(panel);
+  advanceBtn(host,'¡Entendido! A las preguntas');
+};
+
+/* quiz */
+STEP.quiz=(step,host)=>{
+  stepGlossary(step);
+  const panel=el('div','panel');panel.appendChild(el('div','steplabel','◆ Reto'));panel.appendChild(el('div','prompt',step.prompt));
+  const opts=el('div','opts');panel.appendChild(opts);const fb=el('div','feedback');let solved=false,hadWrong=false;
+  step.options.forEach((o,idx)=>{
+    const b=el('button','opt');b.innerHTML=`<span class="mk">${String.fromCharCode(65+idx)}</span><span>${o.text}</span>`;
+    b.addEventListener('click',()=>{
+      if(solved||b.classList.contains('wrong'))return;
+      if(o.correct){solved=true;RUN.answered++;b.classList.add('correct');opts.querySelectorAll('.opt').forEach(x=>x.classList.add('disabled'));if(!hadWrong)RUN.correctFirst++;fb.className='feedback ok show';fb.innerHTML='<b>¡Correcto! '+pick(['Tuanis.','Qué chiva.','Pura vida.','Al chile, bien.'])+'</b>'+o.feedback;if(step.note)fb.innerHTML+=`<div class="hintbox" style="margin-top:10px"><span class="pix">Nota del CRT</span>${step.note}</div>`;award(15);advanceBtn(host);}
+      else{hadWrong=true;b.classList.add('wrong');b.classList.add('disabled');fb.className='feedback no show';fb.innerHTML='<b>Esa no, mae.</b>'+o.feedback+'<br><br>Probá otra: no se puede seguir hasta acertar.';}
+    });
+    opts.appendChild(b);
+  });
+  panel.appendChild(fb);host.appendChild(panel);
+};
+
+/* decision */
+STEP.decision=(step,host)=>{
+  stepGlossary(step);
+  const panel=el('div','panel');panel.appendChild(el('div','steplabel','◆ Decisión'));panel.appendChild(el('div','prompt',step.prompt));
+  const opts=el('div','opts');panel.appendChild(opts);const fb=el('div','feedback');let solved=false,hadWrong=false;
+  step.options.forEach((o,idx)=>{
+    const b=el('button','opt');b.innerHTML=`<span class="mk">${String.fromCharCode(65+idx)}</span><span>${o.text}</span>`;
+    b.addEventListener('click',()=>{
+      if(solved||b.classList.contains('wrong'))return;
+      if(o.outcome==='good'){solved=true;RUN.answered++;b.classList.add('correct');opts.querySelectorAll('.opt').forEach(x=>x.classList.add('disabled'));if(!hadWrong)RUN.correctFirst++;fb.className='feedback ok show';fb.innerHTML='<b>¡Buena decisión!</b>'+o.feedback;award(18);advanceBtn(host);}
+      else{hadWrong=true;b.classList.add('wrong');b.classList.add('disabled');fb.className='feedback no show';fb.innerHTML='<b>Esa no era…</b>'+o.feedback+'<br><br>Pensalo bien y elegí de nuevo: no se sigue hasta dar con la correcta.';}
+    });
+    opts.appendChild(b);
+  });
+  panel.appendChild(fb);host.appendChild(panel);
+};
+
+/* classify */
+STEP.classify=(step,host)=>{
+  stepGlossary(step);
+  const panel=el('div','panel');panel.appendChild(el('div','steplabel','◆ Clasificá'));panel.appendChild(el('div','prompt',step.prompt));
+  const pool=el('div','pool');const buckets=el('div','buckets');panel.appendChild(pool);panel.appendChild(buckets);
+  const fb=el('div','feedback');panel.appendChild(fb);host.appendChild(panel);
+  let active=null;const placed={};
+  shuffle(step.items.map((it,ix)=>({...it,ix}))).forEach(it=>{
+    const c=el('button','chipitem',it.text);c.dataset.ix=it.ix;
+    c.addEventListener('click',()=>{if(c.classList.contains('placed'))return;pool.querySelectorAll('.chipitem').forEach(x=>x.classList.remove('active'));if(active===c){active=null;buckets.querySelectorAll('.bucket').forEach(b=>b.classList.remove('hot'));return;}active=c;c.classList.add('active');buckets.querySelectorAll('.bucket').forEach(b=>b.classList.add('hot'));});
+    pool.appendChild(c);
+  });
+  step.buckets.forEach(bk=>{
+    const b=el('div','bucket');b.innerHTML=`<h4>${bk.label}</h4><div class="desc">${bk.desc}</div><div class="drop"></div>`;
+    b.addEventListener('click',()=>{if(!active)return;const ix=+active.dataset.ix;placed[ix]=bk.id;b.querySelector('.drop').appendChild(el('div','dropped',step.items[ix].text));active.classList.add('placed');active.classList.remove('active');active=null;buckets.querySelectorAll('.bucket').forEach(x=>x.classList.remove('hot'));if(Object.keys(placed).length===step.items.length)showCheck();});
+    buckets.appendChild(b);
+  });
+  function showCheck(){
+    if(panel._checkShown)return;panel._checkShown=true;
+    let hadWrong=false;
+    const a=el('div','actions');const b=el('button','btn primary','Revisar ✓');
+    b.addEventListener('click',()=>{
+      let ok=0;const wrong=[];buckets.querySelectorAll('.dropped').forEach(d=>d.remove());
+      step.items.forEach((item,ix)=>{
+        if(placed[ix]==null)return;
+        if(placed[ix]===item.bucket){ok++;const bi=step.buckets.findIndex(x=>x.id===placed[ix]);buckets.children[bi].querySelector('.drop').appendChild(el('div','dropped ok','✓ '+item.text));}
+        else wrong.push(ix);
+      });
+      if(wrong.length===0&&ok===step.items.length){
+        RUN.answered++;if(!hadWrong)RUN.correctFirst++;
+        fb.className='feedback ok show';fb.innerHTML='<b>¡Impecable, mae!</b> Clasificaste todo bien.';award(25);
+        a.remove();advanceBtn(host);
+      }else{
+        hadWrong=true;
+        wrong.forEach(ix=>{const chip=pool.querySelector('.chipitem[data-ix="'+ix+'"]');if(chip)chip.classList.remove('placed');delete placed[ix];});
+        fb.className='feedback no show';fb.innerHTML=`<b>${ok}/${step.items.length} bien.</b> Las que faltan volvieron abajo. Reacomodalas y revisá de nuevo: no se sigue hasta que TODAS queden bien.`;
+      }
+    });
+    a.appendChild(b);panel.appendChild(a);
+  }
+};
+
+/* order */
+STEP.order=(step,host)=>{
+  stepGlossary(step);
+  const panel=el('div','panel');panel.appendChild(el('div','steplabel','◆ '+(step.title||'Ordená')));panel.appendChild(el('div','prompt',step.prompt));
+  let order=shuffle(step.items.map(i=>i.id));if(order.join()===step.correctOrder.join())order=shuffle(order);
+  const list=el('div','orderlist');panel.appendChild(list);const fb=el('div','feedback');
+  function draw(){
+    list.innerHTML='';
+    order.forEach((id,i)=>{const it=step.items.find(x=>x.id===id);const row=el('div','oitem');row.innerHTML=`<span class="idx">${i+1}</span><span>${it.label}</span><span class="mvs"><button class="mv" ${i===0?'disabled':''} data-up="${i}">▲</button><button class="mv" ${i===order.length-1?'disabled':''} data-dn="${i}">▼</button></span>`;list.appendChild(row);});
+    list.querySelectorAll('[data-up]').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.up;[order[i-1],order[i]]=[order[i],order[i-1]];draw();}));
+    list.querySelectorAll('[data-dn]').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.dn;[order[i+1],order[i]]=[order[i],order[i+1]];draw();}));
+  }
+  draw();panel.appendChild(fb);host.appendChild(panel);
+  const a=el('div','actions');const chk=el('button','btn primary','Revisar orden ✓');
+  chk.addEventListener('click',()=>{
+    const ok=order.join()===step.correctOrder.join();RUN.answered++;
+    list.querySelectorAll('.oitem').forEach((row,i)=>row.classList.add(order[i]===step.correctOrder[i]?'ok':'bad'));
+    if(ok){RUN.correctFirst++;fb.className='feedback ok show';fb.innerHTML='<b>¡Orden perfecto!</b>'+(step.whyRight||'')+(step.dates?'<br><br>'+step.items.map(it=>`<b>${it.label}:</b> ${step.dates[it.id]}`).join(' · '):'');award(25);chk.disabled=true;if(step.flag)captureFlag(step.flag,host,panel);else advanceBtn(host);}
+    else{fb.className='feedback no show';fb.innerHTML='<b>Casi, mae.</b> Las filas en rojo están fuera de lugar. '+(step.whyRight||'')+'<br><br>Acomodalas e intentá de nuevo.';setTimeout(()=>list.querySelectorAll('.oitem').forEach(r=>r.classList.remove('ok','bad')),1500);}
+  });
+  a.appendChild(chk);panel.appendChild(a);
+};
+
+/* reflect */
+STEP.reflect=(step,host)=>{
+  const panel=el('div','panel');panel.appendChild(el('div','steplabel','◆ '+(step.kind==='sign'?'Juramento':'Reflexión')));panel.appendChild(el('div','prompt',step.prompt));
+  const ta=el('textarea','input');ta.rows=step.kind==='sign'?1:3;ta.placeholder=step.placeholder||'';if(step.kind!=='sign')ta.style.fontFamily='var(--f-body)';if(step.kind==='sign')ta.value=S.alias;
+  panel.appendChild(ta);const fb=el('div','feedback');panel.appendChild(fb);host.appendChild(panel);
+  const a=el('div','actions');const b=el('button','btn primary',step.cta||'Guardar');
+  b.addEventListener('click',()=>{if(ta.value.trim().length<2){toast('Escribí algo primero, mae.');return;}RUN.answered++;RUN.correctFirst++;fb.className='feedback ok show';fb.innerHTML=step.kind==='sign'?`<b>Firmado por ${esc(ta.value.trim())}.</b> Bienvenida oficialmente al CRT. 📜`:'<b>¡Gracias por pensarlo!</b> Esa reflexión es parte del aprendizaje.';award(20);b.disabled=true;ta.disabled=true;advanceBtn(host);});
+  a.appendChild(b);panel.appendChild(a);
+};
+/* ===== CTF ===== */
+function safeBanner(){return `<div class="safebanner"><span class="ic">🛡️</span><div><b>Laboratorio simulado.</b> Nada es real: "Banco Pura Vida" es ficticio, los dominios <span class="mono">.test</span> no existen y nada sale de tu navegador.</div></div>`;}
+function hintWidget(step,host,panel){
+  if(!step.hints||!step.hints.length)return;
+  const bar=el('div','hintbar');let idx=0;const box=el('div');
+  const b=el('button','btn ghost sm','💡 Pedir pista');const info=el('span',null,`<span class="tag">pistas: ${step.hints.length}</span>`);
+  b.addEventListener('click',()=>{if(idx>=step.hints.length){toast('No hay más pistas, mae.');return;}const h=step.hints[idx];box.appendChild(el('div','hintbox',`<span class="pix">Pista ${idx+1}${h.cost?` · −₡${h.cost}`:' · gratis'}</span>${h.text}`));if(h.cost){S.points=Math.max(0,S.points-h.cost);RUN.hintsUsed++;save();refreshHUD();}idx++;if(idx>=step.hints.length)b.disabled=true;});
+  bar.appendChild(b);bar.appendChild(info);panel.appendChild(bar);panel.appendChild(box);
+}
+STEP.inspect=(step,host)=>{
+  const panel=el('div','panel');panel.appendChild(el('div','steplabel','🎣 '+step.title));panel.insertAdjacentHTML('beforeend',safeBanner());panel.appendChild(el('p',null,step.intro));
+  const win=el('div','win');
+  win.innerHTML=`<div class="winbar"><div class="dots"><i></i><i></i><i></i></div><div class="ttl">📧 TicoMail — Bandeja</div></div>
+    <div class="winbody"><div class="mailhead"><span class="lbl">De:</span><span class="val">${step.from.replace(step.fromSuspect,`<span class="suspect" data-note="${esc(step.fromNote)}">${step.fromSuspect}</span>`)}</span><span class="lbl">Asunto:</span><span class="val">${step.subject}</span></div>
+      <div class="mailbody">${step.body}<br><a class="fakebtn" id="fakeLink">${step.linkText}</a><div class="urlpeek" id="urlPeek" hidden>🔗 ${step.linkUrl} <span style="color:var(--muted)">— ${step.linkNote}</span></div></div>
+      <div class="actions" style="justify-content:flex-start"><button class="btn sm" id="peekBtn">🔍 Inspeccionar enlace</button><button class="btn sm" id="hdrBtn">📄 Ver encabezados</button></div>
+      <div class="headers" id="hdrs">${step.headers.replace(step.headerFlag,`<span class="hl">${step.headerFlag}</span>`)}</div></div>`;
+  panel.appendChild(win);
+  panel.appendChild(el('div',null,`<div class="objective" style="margin-top:16px"><b>🚩 Para la bandera</b>${step.flagPrompt}</div>`));
+  const fin=el('input','input mono');fin.placeholder='pegá la dirección aquí…';panel.appendChild(fin);
+  hintWidget(step,host,panel);const fb=el('div','feedback');panel.appendChild(fb);host.appendChild(panel);
+  win.querySelector('#fakeLink').addEventListener('click',e=>{e.preventDefault();win.querySelector('#urlPeek').hidden=false;toast('👀 ¿Viste el dominio? Jamás le des clic a un enlace así en la vida real.');});
+  win.querySelector('#peekBtn').addEventListener('click',()=>{win.querySelector('#urlPeek').hidden=false;});
+  win.querySelector('#hdrBtn').addEventListener('click',()=>win.querySelector('#hdrs').classList.toggle('show'));
+  win.querySelector('.suspect').addEventListener('click',function(){toast('⚠ '+this.dataset.note);});
+  const a=el('div','actions');const b=el('button','btn primary','Enviar bandera 🚩');
+  b.addEventListener('click',()=>{const v=fin.value.trim().toLowerCase();if(step.validate(v)){RUN.answered++;RUN.correctFirst++;a.remove();captureFlag(step.flag,host,panel);}else{fb.className='feedback no show';fb.innerHTML='<b>Mmm, esa no.</b> Revisá los encabezados: el <b>Return-Path</b> es la pista. Pedí una pista si la ocupás.';}});
+  a.appendChild(b);panel.appendChild(a);
+};
+STEP.browser=(step,host)=>{
+  const panel=el('div','panel');panel.appendChild(el('div','steplabel','🎣 '+step.title));panel.insertAdjacentHTML('beforeend',safeBanner());panel.appendChild(el('p',null,step.intro));
+  const win=el('div','win');
+  win.innerHTML=`<div class="winbar"><div class="dots"><i></i><i></i><i></i></div><div class="ttl">🌐 Navegador Yigüirro</div></div>
+    <div class="winbody"><div class="addrbar"><span class="lock">🔒</span><span class="u">${step.url}</span></div>
+      <div class="loginbox"><div class="blogo">🏦 Banco Pura Vida</div><div style="font-size:.78rem;color:var(--muted);margin-bottom:6px">Ingresá para reactivar tu SINPE</div>
+        <input class="input" id="luser" placeholder="Usuario"><input class="input" id="lpass" type="password" placeholder="Contraseña">
+        <button class="btn primary" id="lbtn" style="width:100%;justify-content:center;margin-top:6px">Ingresar</button></div>
+      <div style="text-align:center;margin-top:8px"><div style="font-size:.76rem;color:var(--faint)">Credenciales de utilería (no pongás una real):</div><span class="pill">usuario: ${step.util.user}</span><span class="pill">clave: ${step.util.pass}</span></div></div>`;
+  panel.appendChild(win);const fb=el('div','feedback');panel.appendChild(fb);host.appendChild(panel);
+  const pass=win.querySelector('#lpass');
+  win.querySelector('#lbtn').addEventListener('click',()=>{
+    const p=pass.value;
+    if(p&&p!==step.util.pass){pass.value='';fb.className='feedback no show';fb.innerHTML='<b>¡Upe! Aquí nunca se escribe una clave de verdad.</b> Usá solo la de utilería: <span class="mono">'+step.util.pass+'</span>. (Así de fácil un sitio falso te pide tu clave real.)';return;}
+    fb.className='feedback ok show';fb.innerHTML=`<b>Alto ahí.</b> La página dice <span class="mono">${step.url}</span>, pero el banco real sería <span class="mono">${step.realUrl}</span>. ${step.lockNote}`;
+    win.querySelector('#lbtn').disabled=true;RUN.answered++;RUN.correctFirst++;captureFlag(step.flag,host,panel);
+  });
+};
+STEP.coyote=(step,host)=>{
+  const panel=el('div','panel');panel.appendChild(el('div','steplabel','🎣 '+step.title));panel.insertAdjacentHTML('beforeend',safeBanner());panel.appendChild(el('p',null,step.intro));
+  const split=el('div','split');
+  split.innerHTML=`<div class="coyote"><div class="winbar"><div class="dots"><i></i><i></i><i></i></div><div class="ttl">🐺 panel-coyote (dramatización)</div></div><div class="coylog" id="coylog"></div></div>
+    <div class="win"><div class="winbar"><div class="dots"><i></i><i></i><i></i></div><div class="ttl">📱 Tu teléfono</div></div><div class="winbody" id="phone" style="font-size:.86rem;color:var(--muted)">Esperando…</div></div>`;
+  panel.appendChild(split);const callHost=el('div');panel.appendChild(callHost);host.appendChild(panel);
+  const log=split.querySelector('#coylog');
+  const lines=[{t:'[00:01]',c:'',x:'Víctima abrió el sitio falso…'},{t:'[00:04]',c:'cap',x:'› usuario capturado: vale.mora'},{t:'[00:04]',c:'cap',x:'› clave capturada: ********'},{t:'[00:06]',c:'',x:'Intentando entrar al banco real…'},{t:'[00:07]',c:'',x:'⚠ el banco pide código OTP por SMS'}];
+  let i=0;(function tick(){if(i>=lines.length){phoneStep();return;}const ln=lines[i++];log.appendChild(el('div','ln '+ln.c,`<span class="t">${ln.t}</span> ${ln.x}`));setTimeout(tick,650);})();
+  function phoneStep(){
+    split.querySelector('#phone').innerHTML=`<div style="background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px"><div style="font-family:var(--f-mono);font-size:.74rem;color:var(--faint)">SMS · Banco Pura Vida</div>Tu código es <b>840213</b>. No lo compartás con nadie.</div>`;
+    const card=el('div','callcard');card.innerHTML=`<div class="ring">📞 llamada entrante · número desconocido</div><p style="margin:8px 0">${step.decisionPrompt}</p>`;
+    const opts=el('div','opts');const fb=el('div','feedback');let solved=false,hadWrong=false;
+    step.options.forEach((o,idx)=>{const b=el('button','opt');b.innerHTML=`<span class="mk">${String.fromCharCode(65+idx)}</span><span>${o.text}</span>`;
+      b.addEventListener('click',()=>{
+        if(solved||b.classList.contains('wrong'))return;
+        if(o.outcome==='good'){solved=true;RUN.answered++;opts.querySelectorAll('.opt').forEach(x=>x.classList.add('disabled'));b.classList.add('correct');if(!hadWrong)RUN.correctFirst++;log.appendChild(el('div','ln ok','<span class="t">[00:12]</span> ✗ sin OTP: acceso DENEGADO. ¡Coyote se quedó afuera!'));fb.className='feedback ok show';fb.innerHTML='<b>¡Así se hace!</b>'+o.feedback;captureFlag(step.flag,host,panel);}
+        else{hadWrong=true;b.classList.add('wrong');b.classList.add('disabled');log.appendChild(el('div','ln cap','<span class="t">[00:12]</span> › en la vida real eso completaría el robo…'));fb.className='feedback no show';fb.innerHTML='<b>Ojo.</b>'+o.feedback+'<br><br>Elegí la otra opción para cortar el ataque: no se sigue hasta hacerlo bien.';}
+      });
+      opts.appendChild(b);});
+    card.appendChild(opts);card.appendChild(fb);callHost.appendChild(card);window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+  }
+};
+STEP.viewsource=(step,host)=>{
+  const panel=el('div','panel');panel.appendChild(el('div','steplabel','🎣 '+step.title));panel.insertAdjacentHTML('beforeend',safeBanner());panel.appendChild(el('p',null,step.intro));
+  const secret=b64(step.flag);
+  const src=el('div','srcview');src.innerHTML=`&lt;!doctype html&gt;\n&lt;html lang="es"&gt;\n&lt;head&gt;&lt;title&gt;Banco Pura Vida&lt;/title&gt;&lt;/head&gt;\n&lt;body&gt;\n  &lt;form&gt;  <span class="cmt">&lt;!-- formulario de la página falsa (simulado) --&gt;</span>\n    &lt;input name="user"&gt; &lt;input name="pass"&gt;\n  &lt;/form&gt;\n  <span class="cmt">&lt;!-- nota del kit (base64): <span class="b64" id="b64">${secret}</span> --&gt;</span>\n&lt;/body&gt;&lt;/html&gt;`;
+  panel.appendChild(src);panel.appendChild(el('p','hint','Pista: tocá el texto amarillo para copiarlo al decodificador.'));
+  const dec=el('div','decoder');dec.innerHTML=`<input class="input" id="decIn" placeholder="pegá el texto en Base64…"><button class="btn" id="decBtn">Decodificar 🔓</button>`;panel.appendChild(dec);
+  const out=el('div','hintbox');out.hidden=true;panel.appendChild(out);
+  hintWidget(step,host,panel);const fb=el('div','feedback');panel.appendChild(fb);host.appendChild(panel);
+  src.querySelector('#b64').addEventListener('click',()=>{dec.querySelector('#decIn').value=secret;toast('Copiado al decodificador 👇');});
+  dec.querySelector('#decBtn').addEventListener('click',()=>{const v=dec.querySelector('#decIn').value;const r=unb64(v);out.hidden=false;
+    if(r&&r===step.flag){out.innerHTML='<span class="pix">Decodificado</span>'+r;RUN.answered++;RUN.correctFirst++;dec.querySelector('#decBtn').disabled=true;captureFlag(step.flag,host,panel);}
+    else if(r){out.innerHTML='<span class="pix">Decodificado</span>'+esc(r)+'<br><span style="color:var(--faint)">…pero eso no parece la bandera. ¿Copiaste el texto correcto?</span>';}
+    else{out.innerHTML='<span style="color:var(--crit)">Eso no es Base64 válido. Copiá el texto amarillo del código fuente.</span>';}});
+};
+STEP.phishornot=(step,host)=>{
+  const panel=el('div','panel');panel.appendChild(el('div','steplabel','🎣 '+step.title));panel.appendChild(el('p',null,step.intro));
+  const host2=el('div');panel.appendChild(host2);const fb=el('div','feedback');panel.appendChild(fb);host.appendChild(panel);
+  let i=0,correct=0;
+  (function render(){
+    host2.innerHTML='';
+    if(i>=step.cases.length){RUN.answered++;if(correct===step.cases.length){RUN.correctFirst++;fb.className='feedback ok show';fb.innerHTML='<b>¡Ojo de cazador! '+correct+'/'+step.cases.length+'</b>';}else{fb.className='feedback ok show';fb.innerHTML='<b>'+correct+'/'+step.cases.length+' bien.</b> Igual capturás la bandera; repasá: lo difícil es cuando la historia es muy creíble.';}captureFlag(step.flag,host,panel);return;}
+    const cs=step.cases[i];const card=el('div','phishcard');card.innerHTML=`<div class="meta">${cs.meta}</div><div>${cs.text}</div>`;
+    const opts=el('div','opts');opts.style.marginTop='12px';const fbc=el('div','feedback');let hadWrong=false,done=false;
+    [['🎣 Phishing',true],['✅ Legítimo',false]].forEach(([lbl,val])=>{const b=el('button','opt');b.innerHTML=`<span class="mk">${val?'🎣':'✅'}</span><span>${lbl}</span>`;
+      b.addEventListener('click',()=>{
+        if(done||b.classList.contains('wrong'))return;const right=val===cs.phish;
+        if(right){done=true;if(!hadWrong)correct++;opts.querySelectorAll('.opt').forEach(x=>x.classList.add('disabled'));b.classList.add('correct');fbc.className='feedback ok show';fbc.innerHTML='<b>¡Correcto!</b>'+cs.why;const a=el('div','actions');const nb=el('button','btn primary',i<step.cases.length-1?'Siguiente ▸':'Terminar ▸');nb.addEventListener('click',()=>{i++;render();});a.appendChild(nb);card.appendChild(a);}
+        else{hadWrong=true;b.classList.add('wrong');b.classList.add('disabled');fbc.className='feedback no show';fbc.innerHTML='<b>Casi…</b> Fijate otra vez en el dominio, la urgencia y si pide datos. Elegí de nuevo: no se sigue hasta acertar.';}
+      });
+      opts.appendChild(b);});
+    card.appendChild(opts);card.appendChild(fbc);host2.appendChild(card);
+  })();
+};
+function captureFlag(flag,host,panel){
+  if(!RUN.flags.includes(flag)){RUN.flags.push(flag);award(50);}
+  const won=el('div','flagwon');won.innerHTML=`<div style="font-size:2.3rem">🚩</div><div class="big">¡BANDERA CAPTURADA!</div><div class="flagcode">${flag}</div><div class="hint">+50 ₡ rep · banderas: ${RUN.flags.length}</div>`;
+  (panel||host).appendChild(won);advanceBtn(host,'Seguir el rastro');window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+}
+
+/* ===== FIN DE MISIÓN ===== */
+function finishMission(){
+  const step=RUN.mission.steps[RUN.stepIdx];const m=RUN.mission;const total=countChallenges(m);
+  const perfect=RUN.hintsUsed===0&&RUN.correctFirst>=total;
+  S.missions[m.id]={done:true,points:(step.points||0)+RUN.flags.length*50,flags:RUN.flags.slice(),score:total?Math.round(RUN.correctFirst/total*100):100,hints:RUN.hintsUsed,noHints:perfect};
+  award(step.points||0);grantBadge(step.badge);
+  if(m.id==='m11')grantBadge('tico');
+  if(perfect&&total>=3)grantBadge('perfect');
+  if(allDone())grantBadge('graduado');
+  save();
+  const host=$('#stepHost');host.innerHTML='';$('#stepsNav').querySelectorAll('.sdot').forEach(d=>d.className='sdot done');
+  const panel=el('div','panel complete');const nextM=MISSIONS[missionIndex(m.id)+1];
+  panel.innerHTML=`<div class="burst">${pick(['🎉','🥳','🎊','✨'])}</div><h3>${step.title}</h3>
+    <p style="color:var(--muted);max-width:50ch;margin:0 auto">${step.msg}</p>
+    ${step.caveat?`<div class="hintbox" style="max-width:52ch;margin:14px auto 0;text-align:left"><span class="pix">Nota de rigor</span>${step.caveat}</div>`:''}
+    <div class="rewards"><div class="reward"><div class="n">+${step.points||0}</div><div class="l">₡ rep base</div></div>${RUN.flags.length?`<div class="reward"><div class="n">${RUN.flags.length}🚩</div><div class="l">banderas</div></div>`:''}<div class="reward"><div class="n">${S.missions[m.id].score}%</div><div class="l">acierto</div></div><div class="reward"><div class="n">${BADGES[step.badge].ic}</div><div class="l">${BADGES[step.badge].nm}</div></div></div>`;
+  const a=el('div','actions');a.style.justifyContent='center';
+  if(allDone()){const cb=el('button','btn primary','🎓 Ver mi certificado');cb.addEventListener('click',()=>{show('cert');renderCert();});a.appendChild(cb);}
+  else if(nextM){const nb=el('button','btn primary','Siguiente: '+nextM.title+' ▸');nb.addEventListener('click',()=>openMission(nextM.id));a.appendChild(nb);}
+  const mb=el('button','btn ghost','Volver al mapa');mb.addEventListener('click',()=>{show('map');renderMap();});a.appendChild(mb);
+  panel.appendChild(a);host.appendChild(panel);refreshHUD();
+}
+
+/* ===== GLOSARIO / SIGLAS ===== */
+let glosTab='glos';
+function renderGlossary(filter=''){
+  const list=$('#glosList');list.innerHTML='';const f=filter.trim().toLowerCase();
+  if(glosTab==='glos'){
+    GLOSSARY.filter(g=>!f||g.t.toLowerCase().includes(f)||g.d.toLowerCase().includes(f)).forEach(g=>{
+      const has=S.glossary.includes(g.t);const e=el('div','gentry');
+      e.innerHTML=`<div class="term">${g.t} <span class="lk">${has?'✓ descubierta':'por descubrir'}</span></div><div class="def">${g.d}</div>`;list.appendChild(e);});
+  }else{
+    Object.keys(ACR).filter(a=>!f||a.toLowerCase().includes(f)||ACR[a].toLowerCase().includes(f)).forEach(a=>{
+      const e=el('div','gentry');e.innerHTML=`<div class="term">${a}</div><div class="def">${ACR[a]}</div>`;list.appendChild(e);});
+  }
+}
+/* ===== INSIGNIAS ===== */
+function renderBadges(){const grid=$('#badgeGrid');grid.innerHTML='';const keys=Object.keys(BADGES);$('#badgeCount').textContent=`Tenés ${S.badges.length} de ${keys.length} insignias.`;keys.forEach(k=>{const has=S.badges.includes(k);const c=el('div','bchip'+(has?' have':''));c.innerHTML=`<div class="ic">${BADGES[k].ic}</div><div class="nm">${BADGES[k].nm}</div>`;grid.appendChild(c);});}
+/* ===== PERSONAJES ===== */
+function renderChars(){const l=$('#charList');l.innerHTML='';Object.keys(CHARS).forEach(k=>{const c=CHARS[k];if(!c.name||!c.bio)return;const r=el('div','charrow');r.innerHTML=`<div class="av">${c.ic}</div><div><div class="nm">${c.name}</div><div class="rl">${c.role}</div><div style="font-size:.86rem;color:var(--muted);margin-top:3px">${c.bio}</div></div>`;l.appendChild(r);});}
+/* ===== DOCENTE ===== */
+function missionCode(){const flags=[];MISSIONS.forEach(m=>{const st=S.missions[m.id];if(st&&st.flags)flags.push(...st.flags);});const base=(S.alias||'anon')+'|'+doneCount()+'|'+S.points+'|'+flags.length;let h=0;for(let i=0;i<base.length;i++)h=(h*31+base.charCodeAt(i))>>>0;return (S.alias||'ALUMNO').toUpperCase().replace(/\s/g,'').slice(0,8)+'-'+doneCount()+'M-'+S.points+'R-'+h.toString(36).toUpperCase().slice(0,5);}
+function renderTeacher(){
+  const body=$('#teachBody');
+  const rows=MISSIONS.map(m=>{const flags=m.steps.filter(s=>s.flag).map(s=>s.flag);return `<tr><td><b>${m.num}</b> ${m.title}</td><td class="fl">${flags.length?flags.map(esc).join('<br>'):'—'}</td></tr>`;}).join('');
+  body.innerHTML=`<div class="warn">⚠ <b>Solo para el docente.</b> Banderas y guía de evaluación. En clase, recordá que todo el laboratorio es simulado y que atacar sistemas reales es delito (Ley 9048).</div>
+    <details class="tsec" open><summary>🚩 Banderas por misión</summary><div class="tin"><table class="ttable"><thead><tr><th>Misión</th><th>Bandera(s)</th></tr></thead><tbody>${rows}</tbody></table></div></details>
+    <details class="tsec"><summary>📋 Código de misión del estudiante</summary><div class="tin"><p class="hint">El estudiante te lo muestra al terminar. Combina alias, misiones, puntaje y banderas.</p><div class="flagcode" style="color:var(--accent);border-color:var(--accent)">${missionCode()}</div></div></details>
+    <details class="tsec"><summary>🎯 Rúbrica sugerida</summary><div class="tin"><table class="ttable"><tbody><tr><td>Laboratorio de dilemas + jefe final (decisiones)</td><td>35%</td></tr><tr><td>Insignias éticas capturadas (ETICA{...})</td><td>15%</td></tr><tr><td>Cuestionarios de contenido (marcos, robot, hackeo)</td><td>25%</td></tr><tr><td>Reflexión escrita (dilemas del caso)</td><td>25%</td></tr></tbody></table></div></details>
+    <details class="tsec"><summary>🚀 Subirlo gratis (resumen)</summary><div class="tin"><p>GitHub Pages: subí el archivo como <span class="mono">index.html</span>, repo público, Settings → Pages → rama main. Compartí el enlace en Classroom/Teams con un Formulario de Google para las banderas. En Moodle: SCORM 1.2 (no 2004).</p></div></details>
+    <div class="actions" style="justify-content:space-between"><button class="btn ghost" id="resetGame">🗑 Reiniciar partida</button><span class="hint">Autor: César Jiménez Segura · 2026</span></div>`;
+  $('#resetGame').addEventListener('click',function(){if(this.dataset.c){resetAll();location.reload();}else{this.dataset.c='1';this.textContent='¿Seguro? Tocá otra vez para borrar todo';}});
+}
+/* ===== CERTIFICADO ===== */
+function renderCert(){
+  const hostC=$('#certHost');
+  if(!allDone()){hostC.innerHTML=`<div class="panel locknote"><div class="big">🔒</div><h3>Certificado bloqueado</h3><p style="color:var(--muted);max-width:44ch;margin:8px auto 0">Completá las ${MISSIONS.length} misiones para desbloquearlo. Llevás <b>${doneCount()}</b>. ¡Dale, mae, que ya casi!</p></div>`;return;}
+  const when=new Date().toLocaleDateString('es-CR',{year:'numeric',month:'long',day:'numeric'});
+  hostC.innerHTML=`<div class="cert"><div class="seal">🎓🇨🇷</div><div class="ttl">Instituto de Robótica y Ética de Tiquicia · El Código de TICO</div><p style="color:var(--muted);margin:4px 0 10px">certifica que</p><div class="nm">${esc(S.alias||'Agente')}</div><p style="margin:12px auto 0;max-width:46ch;color:var(--muted)">completó las ${MISSIONS.length} misiones del programa de ética y ciberseguridad —autonomía del robot, conflicto ético, hackeo ético y marcos normativos—, con <b>₡${S.points}</b> de reputación.</p><div class="dt">📅 ${when} · 🎖️ ${S.badges.length} insignias</div><div class="sig">Firma del programa · <b>César Jiménez Segura</b><br><span class="mono" style="font-size:.7rem">Código: ${missionCode()}</span></div></div><p class="hint" style="text-align:center;margin-top:14px">Podés tomarle una captura para guardarlo o enviárselo a tu profe.</p>`;
+}
+
+/* ===== OVERLAYS ===== */
+function openOverlay(id){$('#'+id).classList.add('open');}
+function closeOverlays(){document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('open'));}
+document.querySelectorAll('.overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)closeOverlays();});o.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',closeOverlays));});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeOverlays();});
+$('#glosBtn').addEventListener('click',()=>{renderGlossary();openOverlay('ovGlos');});
+$('#glosSearch').addEventListener('input',e=>renderGlossary(e.target.value));
+$('#tabGlos').addEventListener('click',()=>{glosTab='glos';$('#tabGlos').classList.add('on');$('#tabAcro').classList.remove('on');$('#glosSearch').value='';renderGlossary();});
+$('#tabAcro').addEventListener('click',()=>{glosTab='acro';$('#tabAcro').classList.add('on');$('#tabGlos').classList.remove('on');$('#glosSearch').value='';renderGlossary();});
+$('#badgeBtn').addEventListener('click',()=>{renderBadges();openOverlay('ovBadge');});
+$('#charBtn').addEventListener('click',()=>{renderChars();openOverlay('ovChar');});
+$('#teachBtn').addEventListener('click',()=>{renderTeacher();openOverlay('ovTeach');});
+
+/* ===== ARRANQUE ===== */
+$('#homeBtn').addEventListener('click',()=>{if(S.started){show('map');renderMap();}else show('start');});
+$('#certBack').addEventListener('click',()=>{show('map');renderMap();});
+$('#goCert').addEventListener('click',()=>{show('cert');renderCert();});
+function startGame(){const a=$('#aliasIn').value.trim();if(a.length<2){toast('Escribí un alias, mae (2+ letras).');$('#aliasIn').focus();return;}S.alias=a;S.started=true;save();refreshHUD();show('map');renderMap();}
+$('#startBtn').addEventListener('click',startGame);
+$('#aliasIn').addEventListener('keydown',e=>{if(e.key==='Enter')startGame();});
+(function init(){refreshHUD();if(S.started){$('#aliasIn').value=S.alias||'';$('#startBtn').textContent='Reanudar como '+(S.alias||'agente')+' ▸';}})();
+/*__REST__*/
+</script>
+
+</body></html>
